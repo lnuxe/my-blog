@@ -1340,3 +1340,150 @@ button, input, select, textarea {
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   17. 3D 升级：Hero 星图背景 + Atropos 卡片景深
+   --------------------------------------------------------------------------
+   本节是后加的，只追加、不改动上面的任何分节。
+   设计令牌全部沿用第 01 节（--accent / --bg / --border / --radius / --shadow-*）
+   依赖的第三方文件只有两个，都是本地自带（无 CDN、无外部请求）：
+     · assets/vendor/three.min.js     three.js r160   MIT（只被 hero3d.js 使用）
+     · assets/vendor/atropos.min.css  Atropos 2.0.2  MIT（本节的 .atropos-* 规则）
+   ========================================================================== */
+
+/* ---- 17.1 Hero 的 3D 背景 ------------------------------------------------- */
+/* .hero 已经是 position:relative + overflow:hidden，这里只负责铺满，不参与布局 */
+.hero-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* 绝不挡住文字选择与点击 */
+}
+/* 内容层压在背景之上 */
+.hero > .container {
+  position: relative;
+  z-index: 2;
+}
+
+/* 可读性遮罩：从正文一侧的不透明背景色渐隐到透明，
+   保证两套主题下标题与正文都维持 AA 对比度；纯装饰，不接收指针事件 */
+.hero-3d-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg,
+      var(--bg) 4%,
+      color-mix(in srgb, var(--bg) 72%, transparent) 34%,
+      color-mix(in srgb, var(--bg) 26%, transparent) 62%,
+      transparent 100%),
+    linear-gradient(180deg,
+      transparent 58%,
+      color-mix(in srgb, var(--bg) 55%, transparent) 100%);
+}
+@media (max-width: 720px) {
+  .hero-3d-veil {
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--bg) 62%, transparent) 0%,
+        color-mix(in srgb, var(--bg) 34%, transparent) 55%,
+        color-mix(in srgb, var(--bg) 58%, transparent) 100%);
+  }
+}
+
+/* ---- 17.2 Atropos 卡片景深 ------------------------------------------------ */
+/* 卡片外面多包了两层（.atropos > .atropos-rotate > .atropos-inner），
+   只用来做 3D 变换，不改变卡片自身的任何观感 */
+.card-3d {
+  display: block;            /* <li> 在 grid 里，显式 block 更稳妥 */
+  height: 100%;
+  --atropos-shadow: 0 22px 42px -22px rgba(16, 24, 40, 0.45);
+  --atropos-glow: rgba(255, 255, 255, 0.14);
+}
+[data-theme="dark"] .card-3d {
+  --atropos-shadow: 0 26px 52px -24px rgba(0, 0, 0, 0.9);
+  --atropos-glow: rgba(255, 255, 255, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .card-3d {
+    --atropos-shadow: 0 26px 52px -24px rgba(0, 0, 0, 0.9);
+    --atropos-glow: rgba(255, 255, 255, 0.06);
+  }
+}
+/* 卡片里的文字本来就不该被拖选（照抄 vendor/atropos.min.css 里
+   .atropos-rotate-touch 的写法），否则倾斜时容易误选 */
+.card-3d .atropos-rotate {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* 阴影由 CSS 自己画（Atropos 的 shadow/highlight 都关掉了），
+   内联在 .atropos-rotate 里，贴住卡片的圆角 */
+.card-3d .atropos-shadow {
+  display: block;
+  z-index: 0;
+  inset: 6px 10px;
+  border-radius: var(--radius-lg);
+  background: var(--atropos-shadow);
+  filter: none;
+  opacity: 0;
+}
+
+/* 高光：含蓄一点，跟着主题走 */
+.card-3d .atropos-highlight {
+  display: block;
+  background-image: radial-gradient(circle at 50%, var(--atropos-glow), transparent 55%);
+  /* .atropos-highlight 的 z-index:0 会盖住 .project-card 的自动层叠上下文，
+     这里压到卡片之下 —— 卡片自身是不透明背景，高光只会从圆角边缘透出来一点点 */
+  z-index: -1;
+  opacity: 0;
+}
+.card-3d.is-tilting .atropos-shadow { opacity: 1; }
+.card-3d.is-tilting .atropos-highlight { opacity: 1; }
+
+/* 卡片自己的 box-shadow 交给 atropos-shadow 表现，避免两层阴影打架 */
+.card-3d .post-card,
+.card-3d .project-card { box-shadow: none; }
+.card-3d .post-card:hover,
+.card-3d .project-card:hover {
+  border-color: var(--border-strong);
+  /* 悬停位移交给 3D 变换（activeOffset），不再叠加 translateY */
+  transform: none;
+}
+.card-3d .atropos-inner > .project-card { padding: 0; }
+
+/* 首页搜索筛选给卡片加 .is-hidden（display:none）。属性现在挂在外层 <li> 上，
+   但为了避免老浏览器 / 兜底路径下漏掉，被隐藏时连内层卡片一起收干净 */
+.card-3d.is-hidden .post-card,
+.card-3d:has(.is-hidden) .post-card { display: none; }
+
+/* 景深：首页文章卡片的标题里铺了一整张 .post-card-title a::after 点击热区，
+   一旦给标题加 3D 位移就会把那个热区的包含块改掉、毁掉「整卡可点」，
+   所以标题不做位移，改成给元信息、摘要与页脚做位移 */
+[data-atropos-offset] { will-change: transform; }
+
+/* reduced-motion：一条兜底规则，保证任何情况下都没有 3D 位移 */
+@media (prefers-reduced-motion: reduce) {
+  .card-3d .atropos-scale,
+  .card-3d .atropos-rotate,
+  .card-3d [data-atropos-offset] { transform: none !important; }
+  .card-3d .atropos-shadow,
+  .card-3d .atropos-highlight { opacity: 0 !important; }
+}
+
+/* ---- 17.3 打印：装饰一律不出现 ------------------------------------------- */
+@media print {
+  .hero-3d,
+  .hero-3d-veil,
+  .card-3d .atropos-shadow,
+  .card-3d .atropos-highlight { display: none !important; }
+}
+
