@@ -1,0 +1,4 @@
+# 忽略本地临时文件
+.session_tmps/
+.env
+.DS_Store

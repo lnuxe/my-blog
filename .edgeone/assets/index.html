@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SupermanCantFly · 个人博客</title>
+<meta name="description" content="SupermanCantFly 的个人博客 —— 记录代码、自动化与生活的飞行日志" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦸</text></svg>" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #7ee787;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Hero ---- */
+  header.hero {
+    padding: 80px 0 60px;
+    text-align: center;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(88,166,255,.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(126,231,135,.08), transparent);
+  }
+  .avatar {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 52px;
+    background: linear-gradient(135deg, #1f6feb33, #7ee78733);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 2.2rem; letter-spacing: 1px; }
+  h1 .cc { color: var(--accent); }
+  .tagline { color: var(--text-dim); margin-top: 10px; font-size: 1.05rem; }
+  .hero-badges { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    font-size: .8rem; padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text-dim);
+    background: var(--bg-card);
+  }
+
+  /* ---- Nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13,17,23,.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .container { display: flex; gap: 26px; height: 52px; align-items: center; }
+  nav a { color: var(--text-dim); text-decoration: none; font-size: .92rem; }
+  nav a:hover { color: var(--accent); }
+  nav .logo { font-family: var(--mono); font-weight: 700; color: var(--text); margin-right: auto; }
+
+  /* ---- Sections ---- */
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--border); }
+  .sec-title {
+    font-size: 1.25rem; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+  }
+  .sec-title::before { content: "//"; color: var(--accent); font-family: var(--mono); }
+
+  /* ---- Post cards ---- */
+  .post-list { display: grid; gap: 18px; }
+  .post {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px;
+    transition: border-color .2s, transform .2s;
+  }
+  .post:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .post-meta { font-size: .8rem; color: var(--text-dim); font-family: var(--mono); display: flex; gap: 14px; flex-wrap: wrap; }
+  .post h3 { margin: 8px 0 6px; font-size: 1.12rem; }
+  .post h3 a { color: var(--text); text-decoration: none; }
+  .post h3 a:hover { color: var(--accent); }
+  .post p { color: var(--text-dim); font-size: .92rem; }
+  .tag { font-size: .72rem; padding: 2px 8px; border-radius: 4px; background: #1f6feb22; color: var(--accent); }
+
+  /* ---- About / Projects ---- */
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px;
+  }
+  .card h4 { font-size: 1rem; margin-bottom: 10px; }
+  .card p { color: var(--text-dim); font-size: .9rem; }
+  .card .emoji { font-size: 1.6rem; display: block; margin-bottom: 10px; }
+
+  /* ---- Timeline ---- */
+  .timeline { border-left: 2px solid var(--border); padding-left: 22px; display: grid; gap: 18px; }
+  .tl-item { position: relative; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -28px; top: 8px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
+  }
+  .tl-date { font-family: var(--mono); font-size: .78rem; color: var(--accent); }
+  .tl-item p { color: var(--text-dim); font-size: .92rem; }
+
+  /* ---- Footer ---- */
+  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: .85rem; }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 1.7rem; }
+    header.hero { padding: 56px 0 40px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <span class="logo">supermancantfly<span style="color:var(--accent)">.cc</span></span>
+    <a href="#posts">文章</a>
+    <a href="#projects">项目</a>
+    <a href="#about">关于</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="avatar">🦸</div>
+    <h1>Superman<span class="cc">CantFly</span></h1>
+    <p class="tagline">不会飞的超人 —— 靠代码着陆。记录浏览器自动化、全栈开发与折腾日志。</p>
+    <div class="hero-badges">
+      <span class="badge">🛠 浏览器自动化</span>
+      <span class="badge">⚡ NestJS / React</span>
+      <span class="badge">🤖 Playwright</span>
+      <span class="badge">☁️ 腾讯云 EdgeOne</span>
+    </div>
+  </div>
+</header>
+
+<section id="posts">
+  <div class="container">
+    <h2 class="sec-title">最新文章</h2>
+    <div class="post-list">
+      <article class="post">
+        <div class="post-meta">
+          <span>2026-09-23</span><span>⏱ 6 min</span>
+          <span class="tag">部署</span><span class="tag">EdgeOne</span>
+        </div>
+        <h3><a href="#">把自动化后端搬上 Windows 服务器的踩坑实录</a></h3>
+        <p>Memurai 替代 Redis、PM2 守护 Node、Nginx 反代 Socket.IO —— 一台 2GB 内存的腾讯云轻量服务器如何稳定跑起 Playwright 自动化引擎。</p>
+      </article>
+      <article class="post">
+        <div class="post-meta">
+          <span>2026-09-10</span><span>⏱ 8 min</span>
+          <span class="tag">Playwright</span><span class="tag">自动化</span>
+        </div>
+        <h3><a href="#">用 Playwright + Jev 做语义选品：从截图到判断的五步流水线</a></h3>
+        <p>登录态 48 小时过期的扫码续期方案、产品池 5000 行阈值保护、语义判别失败时的规则兜底 —— 一个电商上架自动化引擎的设计细节。</p>
+      </article>
+      <article class="post">
+        <div class="post-meta">
+          <span>2026-08-30</span><span>⏱ 5 min</span>
+          <span class="tag">全栈</span><span class="tag">NestJS</span>
+        </div>
+        <h3><a href="#">BullMQ + Socket.IO：让任务进度实时推到前端面板</a></h3>
+        <p>任务队列、干运行模式、实时日志流 —— 管理端如何做到「点一下按钮，看着浏览器自己干活」。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="container">
+    <h2 class="sec-title">开源 / 项目</h2>
+    <div class="grid2">
+      <div class="card">
+        <span class="emoji">🤖</span>
+        <h4>Starmerx 上架自动化</h4>
+        <p>NestJS + Playwright 五步引擎：登录 → 选品 → 加计划 → 校验 → 上架，Jev 语义判别兜底，BullMQ 队列驱动。</p>
+      </div>
+      <div class="card">
+        <span class="emoji">🌐</span>
+        <h4>本博客</h4>
+        <p>部署在腾讯云 EdgeOne Makers，全球 CDN 加速 + 自动 HTTPS，绑定自定义域名 supermancantfly.cc。</p>
+      </div>
+      <div class="card">
+        <span class="emoji">📱</span>
+        <h4>Mini-apps 活动组件库</h4>
+        <p>电商营销活动页组件化开发，VIP 卡池、海外生活频道等 H5 活动的快速沉淀与复用。</p>
+      </div>
+      <div class="card">
+        <span class="emoji">🧪</span>
+        <h4>auto_test 回归框架</h4>
+        <p>页面回归 + 流程编排的自动化测试框架，产出健康报告，守护每一次发版。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <h2 class="sec-title">关于我</h2>
+    <div class="grid2">
+      <div class="card">
+        <span class="emoji">👨‍💻</span>
+        <h4>在做什么</h4>
+        <p>全栈开发，重度浏览器自动化爱好者。白天写业务，晚上写机器人替自己干活。相信「能自动化的绝不手动」。</p>
+      </div>
+      <div class="card">
+        <span class="emoji">📮</span>
+        <h4>找我</h4>
+        <p>欢迎通过 GitHub / 微信交流自动化、爬虫与部署运维话题。</p>
+      </div>
+    </div>
+    <div style="height:36px"></div>
+    <h2 class="sec-title">飞行日志</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="tl-date">2026-09</span>
+        <p>博客上线 supermancantfly.cc，迁移到腾讯云 EdgeOne Makers。</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-date">2026-08</span>
+        <p>上架自动化引擎重构完成，五步流水线稳定运行。</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-date">2026-06</span>
+        <p>开始沉淀 Mini-apps 活动组件库，H5 活动开发提效 50%。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2026 SupermanCantFly · Powered by <a href="https://cloud.tencent.com/product/teo" target="_blank" rel="noopener">腾讯云 EdgeOne</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
