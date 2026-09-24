@@ -21,7 +21,7 @@
   var LINK_GAP = 15;                       // 连线的最大间距
 
   /* ---- 主题配色：从 CSS 变量读，不写死颜色 ---- */
-  var FALLBACK = { accent: '#1f6feb', bg: '#ffffff' };
+  var FALLBACK = { accent: '#1a5fd0', bg: '#ffffff' };
 
   function cssVar(name, fallback) {
     try {

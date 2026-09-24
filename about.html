@@ -64,7 +64,7 @@
     </div>
   </div>
 
-  <div class="article-wrap" style="max-width:760px;">
+  <div class="article-wrap">
     <article class="prose">
       <p class="lede">我叫 SupermanCantFly，网名的意思是「不会飞的超人」。白天写业务，晚上写机器人替自己干活——这个站点记录的，就是那些机器人以及它们背后的坑。</p>
 
@@ -148,7 +148,9 @@
 
       <h2 id="site">这个站点</h2>
 
-      <p>本站是一个完全静态的站点：纯 HTML、一份 CSS、一份原生 JavaScript，没有任何构建步骤，没有 CDN、没有 Web Font、没有外部脚本，图标全是内联 SVG。它既能直接双击离线阅读，也能丢进任意静态服务器运行。</p>
+      <p>本站是一个完全静态的站点：纯 HTML、一份 CSS、一份原生 JavaScript，没有任何构建步骤，也没有 CDN、没有 Web Font、没有外部图片，图标全是内联 SVG。它既能直接双击离线阅读，也能丢进任意静态服务器运行。</p>
+
+      <p>首页的 3D 背景与卡片景深用了两个开源库——<a href="https://github.com/mrdoob/three.js">three.js</a> 与 <a href="https://github.com/nolimits4web/atropos">Atropos</a>，都是 MIT 许可，文件本地自带在仓库里，所以站点依旧没有任何外部网络请求。除此之外没有别的依赖。</p>
 
       <p>这么做的理由很实际：以前大部分时间花在维护工具链上，而不是写东西上。把依赖削减到零之后，写一篇新文章的启动成本只剩下「复制一个文件，改几行字」。文章里的代码片段、目录结构、参数名都来自各仓库的真实内容，没有经过润色加工。</p>
 

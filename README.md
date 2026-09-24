@@ -5,10 +5,11 @@
 站点主人在 GitHub 上是 [@lnuxe](https://github.com/lnuxe)，文章全部写自真实跑过的项目（浏览器自动化、Agent 技能包、RAG、Flutter 多端）。
 
 - 编码：全站 UTF-8（无 BOM），`lang="zh-CN"`
-- 外部依赖：**零**（无 CDN、无 Web Font、无外部图片、无第三方脚本，图标全部为内联 SVG）
+- 外部请求：**零**（无 CDN、无 Web Font、无外部图片、无分析脚本）。首页会加载两个**本地自带**的第三方库，见「第三方库」一节——文件在仓库里，不产生任何外部网络请求
 - 外链策略：正文与项目页允许 `<a href="https://…">` 形式的普通超链接（如 GitHub），但**不允许任何外部资源引用**
 - 链接：站内链接全部为相对路径，可部署在域名根目录，也可部署在任意子目录下
-- 排版：正文 `line-height` ≥ 1.75，正文最大宽度 `--content-width: 720px`
+- 排版：正文 `line-height` ≥ 1.75，正文最大宽度 `--content-width: 688px`（内容宽 640px，约 40 汉字/行）。完整规则见 [DESIGN.md](DESIGN.md)，可用 `tools/audit_design.py` 自动验收
+- 无障碍：按 WCAG 2.2 AA 验收（对比度 ≥4.5:1、可点击目标 ≥24×24、焦点指示器 2px）
 
 ---
 

@@ -37,14 +37,14 @@
 
   --text: #16181d;
   --text-secondary: #414a55;
-  --text-muted: #6b7480;
+  --text-muted: #59616d;
 
   --border: #e4e8ee;
   --border-strong: #ccd4de;
 
-  --accent: #1f6feb;
+  --accent: #1a5fd0;
   --accent-hover: #1657c2;
-  --accent-soft: rgba(31, 111, 235, 0.09);
+  --accent-soft: rgba(26, 95, 208, 0.09);
   --accent-contrast: #ffffff;
 
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
@@ -56,7 +56,8 @@
   --radius-lg: 16px;
   --radius-full: 999px;
 
-  --content-width: 720px;
+  /* 正文列宽：688 − 2×24(padding) = 640px 内容宽，按 16px 字号正好 40 汉字/行 */
+  --content-width: 688px;
   --container-width: 1080px;
   --header-height: 64px;
 
@@ -135,17 +136,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-wrap: break-word;
+  /* clreq 6.3.2：中文标点挤压。Chrome 123+ 支持；不支持的浏览器整条声明无效，不影响布局 */
+  text-spacing-trim: trim-start;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 0.6em;
+  margin: 0 0 12px;
   line-height: 1.3;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text);
+  text-wrap: balance; /* 老浏览器忽略，降级为普通换行 */
 }
 
-p { margin: 0 0 1.15em; }
+p { margin: 0 0 20px; text-wrap: pretty; }
 
 a {
   color: var(--accent);
@@ -185,11 +189,11 @@ button, input, select, textarea {
   left: 12px;
   top: -60px;
   z-index: 200;
-  padding: 10px 16px;
+  padding: 12px 16px;
   background: var(--accent);
   color: var(--accent-contrast);
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
   transition: top var(--dur) var(--ease);
 }
@@ -250,7 +254,7 @@ button, input, select, textarea {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 8px;
   margin-right: auto;
   color: var(--text);
   font-weight: 700;
@@ -269,9 +273,9 @@ button, input, select, textarea {
 .brand:hover .brand-mark { transform: translateY(-1px) rotate(-3deg); }
 
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-.brand-name { font-size: 1.02rem; letter-spacing: 0.02em; }
+.brand-name { font-size: 16px; letter-spacing: 0.02em; }
 .brand-tagline {
-  font-size: 0.68rem;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
   letter-spacing: 0.12em;
@@ -288,10 +292,10 @@ button, input, select, textarea {
 
 .site-nav a {
   display: block;
-  padding: 0.4rem 0.75rem;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 0.94rem;
+  font-size: 14px;
   font-weight: 500;
   text-decoration: none;
 }
@@ -305,7 +309,7 @@ button, input, select, textarea {
   background: var(--accent-soft);
 }
 
-.header-actions { display: flex; align-items: center; gap: 0.4rem; }
+.header-actions { display: flex; align-items: center; gap: 8px; }
 
 .icon-button {
   display: inline-flex;
@@ -349,15 +353,24 @@ button, input, select, textarea {
     left: 0;
     right: 0;
     top: 100%;
-    padding: 0.5rem 12px 0.9rem;
+    padding: 8px 12px 16px;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow-md);
-    display: none;
+    /* 折叠态不用 display:none：那会让面板里的链接无法聚焦。
+       用 max-height 折叠 —— 不可见、不可点，但仍然可以 Tab 到，
+       一旦焦点进入就靠 :focus-within 展开，焦点环不会落在隐形内容上。 */
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
   }
-  .site-nav.is-open { display: block; animation: nav-in 0.18s var(--ease); }
-  .site-nav ul { flex-direction: column; align-items: stretch; gap: 2px; }
-  .site-nav a { padding: 0.7rem 0.85rem; font-size: 1rem; }
+  .site-nav.is-open,
+  .site-nav:focus-within { max-height: 480px; opacity: 1; pointer-events: auto; }
+  .site-nav.is-open { animation: nav-in 0.18s var(--ease); }
+  .site-nav ul { flex-direction: column; align-items: stretch; gap: 4px; }
+  .site-nav a { padding: 12px 14px; font-size: 1rem; }
 }
 
 @keyframes nav-in {
@@ -391,7 +404,7 @@ button, input, select, textarea {
 
 .hero-title {
   margin: 0 0 0.5rem;
-  font-size: clamp(1.9rem, 5.2vw, 2.7rem);
+  font-size: 30px;
   letter-spacing: -0.02em;
 }
 
@@ -399,7 +412,7 @@ button, input, select, textarea {
   max-width: 620px;
   margin: 0 0 1.5rem;
   color: var(--text-secondary);
-  font-size: clamp(1rem, 2.4vw, 1.1rem);
+  font-size: 18px;
 }
 
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
@@ -407,13 +420,13 @@ button, input, select, textarea {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.6rem 1.15rem;
+  gap: 8px;
+  padding: 8px 16px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-full);
   background: var(--bg-elevated);
   color: var(--text);
-  font-size: 0.94rem;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -445,7 +458,7 @@ button, input, select, textarea {
 }
 .section-title {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 20px;
   letter-spacing: 0.01em;
 }
 .section-title::before {
@@ -458,11 +471,11 @@ button, input, select, textarea {
   border-radius: 2px;
   background: var(--accent);
 }
-.section-link { font-size: 0.9rem; font-weight: 500; }
+.section-link { font-size: 14px; font-weight: 500; }
 
 .post-list {
   display: grid;
-  gap: 1.1rem;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -470,7 +483,7 @@ button, input, select, textarea {
 
 .post-card {
   position: relative;
-  padding: 1.35rem 1.5rem;
+  padding: 20px 24px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
@@ -485,8 +498,8 @@ button, input, select, textarea {
 }
 
 .post-card-title {
-  margin: 0 0 0.4rem;
-  font-size: 1.16rem;
+  margin: 0 0 8px;
+  font-size: 18px;
   line-height: 1.45;
 }
 .post-card-title a { color: var(--text); }
@@ -503,17 +516,17 @@ button, input, select, textarea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.45rem 0.7rem;
-  margin: 0 0 0.7rem;
+  gap: 8px 12px;
+  margin: 0 0 12px;
   color: var(--text-muted);
-  font-size: 0.83rem;
+  font-size: 13px;
 }
 .post-meta .dot { color: var(--border-strong); }
 
 .post-card-excerpt {
-  margin: 0 0 0.9rem;
+  margin: 0 0 16px;
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 16px;
   line-height: 1.7;
 }
 
@@ -522,13 +535,13 @@ button, input, select, textarea {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 8px;
 }
 
 .read-more {
   position: relative;
   z-index: 1;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -544,8 +557,8 @@ button, input, select, textarea {
 
 /* 搜索与筛选 */
 .filter-bar {
-  margin-bottom: 1.35rem;
-  padding: 1rem 1.1rem;
+  margin-bottom: 20px;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-subtle);
@@ -562,12 +575,12 @@ button, input, select, textarea {
 }
 .search-input {
   width: 100%;
-  padding: 0.62rem 2.4rem 0.62rem 2.35rem;
+  padding: 8px 38px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 16px;
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .search-input::placeholder { color: var(--text-muted); }
@@ -595,9 +608,9 @@ button, input, select, textarea {
 .search-clear svg { width: 15px; height: 15px; }
 
 .filter-status {
-  margin: 0.7rem 0 0;
+  margin: 12px 0 0;
   color: var(--text-muted);
-  font-size: 0.84rem;
+  font-size: 13px;
 }
 
 .no-results {
@@ -609,18 +622,18 @@ button, input, select, textarea {
   color: var(--text-muted);
 }
 .no-results.is-visible { display: block; }
-.no-results strong { display: block; margin-bottom: 0.35rem; color: var(--text); font-size: 1.05rem; }
+.no-results strong { display: block; margin-bottom: 8px; color: var(--text); font-size: 18px; }
 
 /* 07. 侧边栏 -------------------------------------------------------------- */
 .layout-side {
   position: sticky;
   top: calc(var(--header-height) + 1.5rem);
   display: grid;
-  gap: 1.1rem;
+  gap: 16px;
 }
 
 .sidebar-card {
-  padding: 1.25rem 1.3rem;
+  padding: 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
@@ -628,8 +641,8 @@ button, input, select, textarea {
 }
 
 .sidebar-title {
-  margin: 0 0 0.8rem;
-  font-size: 0.78rem;
+  margin: 0 0 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -644,29 +657,29 @@ button, input, select, textarea {
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
 }
-.author-name { margin: 0 0 0.15rem; font-size: 1.05rem; }
-.author-role { margin: 0 0 0.8rem; color: var(--text-muted); font-size: 0.83rem; }
-.author-bio { margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.9rem; text-align: left; }
+.author-name { margin: 0 0 4px; font-size: 18px; }
+.author-role { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
+.author-bio { margin: 0 0 1rem; color: var(--text-secondary); font-size: 14px; text-align: left; }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
-  padding-top: 0.9rem;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
 }
 .stat { text-align: center; }
-.stat-value { display: block; font-size: 1.1rem; font-weight: 700; color: var(--text); }
-.stat-label { display: block; font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.05em; }
+.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--text); }
+.stat-label { display: block; font-size: 12px; color: var(--text-muted); letter-spacing: 0.05em; }
 
 .sidebar-list { margin: 0; padding: 0; list-style: none; }
-.sidebar-list li + li { margin-top: 0.6rem; }
-.sidebar-list a { font-size: 0.92rem; font-weight: 500; }
+.sidebar-list li + li { margin-top: 8px; }
+.sidebar-list a { font-size: 14px; font-weight: 500; }
 .sidebar-list .sidebar-date {
   display: block;
-  margin-top: 0.1rem;
+  margin-top: 4px;
   color: var(--text-muted);
-  font-size: 0.76rem;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -674,7 +687,7 @@ button, input, select, textarea {
 .tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -683,13 +696,13 @@ button, input, select, textarea {
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.6rem;
+  gap: 4px;
+  padding: 4px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--bg-subtle);
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.6;
   text-decoration: none;
@@ -702,7 +715,7 @@ button, input, select, textarea {
   background: var(--accent-soft);
   text-decoration: none;
 }
-.tag .tag-count { color: var(--text-muted); font-size: 0.72rem; }
+.tag .tag-count { color: var(--text-muted); font-size: 12px; }
 
 .tag-filter {
   cursor: pointer;
@@ -716,11 +729,11 @@ button, input, select, textarea {
 .tag-filter[aria-pressed="true"] .tag-count { color: var(--accent-contrast); opacity: 0.75; }
 
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.tag-cloud .tag { padding: 0.35rem 0.85rem; font-size: 0.88rem; }
+.tag-cloud .tag { padding: 4px 16px; font-size: 14px; }
 
 .tag-section {
-  padding-top: 1.9rem;
-  margin-top: 1.9rem;
+  padding-top: 32px;
+  margin-top: 32px;
   border-top: 1px solid var(--border);
 }
 .tag-section:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
@@ -729,16 +742,16 @@ button, input, select, textarea {
 .tag-section-title {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 8px;
   margin: 0 0 1rem;
-  font-size: 1.15rem;
+  font-size: 18px;
 }
 .tag-section-title .tag-count {
-  padding: 0.1rem 0.55rem;
+  padding: 4px 8px;
   border-radius: var(--radius-full);
   background: var(--bg-subtle);
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -752,8 +765,8 @@ button, input, select, textarea {
 .post-header { margin-bottom: 2rem; }
 
 .post-eyebrow {
-  margin: 0 0 0.7rem;
-  font-size: 0.8rem;
+  margin: 0 0 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -761,28 +774,28 @@ button, input, select, textarea {
 }
 
 .post-title {
-  margin: 0 0 0.85rem;
-  font-size: clamp(1.65rem, 4.4vw, 2.25rem);
+  margin: 0 0 12px;
+  font-size: 24px;
   line-height: 1.3;
   letter-spacing: -0.02em;
 }
 
-.post-header .post-meta { font-size: 0.87rem; margin-bottom: 0.9rem; }
+.post-header .post-meta { font-size: 14px; margin-bottom: 16px; }
 
 .lede {
   padding-left: 1rem;
   border-left: 3px solid var(--accent);
   color: var(--text-secondary);
-  font-size: 1.05rem;
+  font-size: 18px;
   line-height: 1.8;
 }
 
-.prose { font-size: 1.02rem; }
+.prose { font-size: 16px; }
 
 .prose h2 {
-  margin: 2.6rem 0 1rem;
-  padding-top: 0.4rem;
-  font-size: 1.42rem;
+  margin: 40px 0 16px;
+  padding-top: 8px;
+  font-size: 24px;
   scroll-margin-top: calc(var(--header-height) + 20px);
 }
 .prose h2::before {
@@ -793,15 +806,15 @@ button, input, select, textarea {
   opacity: 0.55;
 }
 .prose h3 {
-  margin: 1.9rem 0 0.7rem;
-  font-size: 1.16rem;
+  margin: 32px 0 12px;
+  font-size: 18px;
   scroll-margin-top: calc(var(--header-height) + 20px);
 }
-.prose h4 { margin: 1.5rem 0 0.6rem; font-size: 1.02rem; }
+.prose h4 { margin: 24px 0 8px; font-size: 16px; }
 
-.prose ul, .prose ol { margin: 0 0 1.15em; }
-.prose li { margin-bottom: 0.45em; }
-.prose li > ul, .prose li > ol { margin-top: 0.45em; }
+.prose ul, .prose ol { margin: 0 0 20px; }
+.prose li { margin-bottom: 8px; }
+.prose li > ul, .prose li > ol { margin-top: 8px; }
 
 .prose strong { font-weight: 700; color: var(--text); }
 
@@ -814,7 +827,7 @@ button, input, select, textarea {
 
 .prose blockquote {
   margin: 1.5rem 0;
-  padding: 0.9rem 1.2rem;
+  padding: 16px 20px;
   border-left: 3px solid var(--border-strong);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: var(--bg-subtle);
@@ -823,24 +836,24 @@ button, input, select, textarea {
 .prose blockquote p:last-child { margin-bottom: 0; }
 
 .prose code {
-  padding: 0.14em 0.4em;
+  padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--bg-inset);
   color: var(--text);
-  font-size: 0.87em;
+  font-size: 14px;
 }
 
 .code-block { position: relative; margin: 1.5rem 0; }
 
 .prose pre {
   margin: 0;
-  padding: 1rem 1.15rem;
+  padding: 16px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-inset);
   overflow-x: auto;
-  font-size: 0.855rem;
+  font-size: 14px;
   line-height: 1.7;
   tab-size: 2;
 }
@@ -858,12 +871,12 @@ button, input, select, textarea {
   position: absolute;
   top: 8px;
   right: 8px;
-  padding: 0.25rem 0.6rem;
+  padding: 4px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 12px;
   font-family: var(--font-sans);
   cursor: pointer;
   opacity: 0;
@@ -878,10 +891,10 @@ button, input, select, textarea {
   width: 100%;
   margin: 1.5rem 0;
   border-collapse: collapse;
-  font-size: 0.92rem;
+  font-size: 14px;
 }
 .prose th, .prose td {
-  padding: 0.55rem 0.8rem;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   text-align: left;
 }
@@ -894,26 +907,26 @@ button, input, select, textarea {
 /* 目录 */
 .toc {
   margin: 2rem 0;
-  padding: 1.1rem 1.3rem;
+  padding: 16px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-subtle);
 }
 .toc-title {
-  margin: 0 0 0.6rem;
-  font-size: 0.8rem;
+  margin: 0 0 8px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 .toc ol { margin: 0; padding-left: 1.2em; }
-.toc li { margin-bottom: 0.3rem; font-size: 0.92rem; }
+.toc li { margin-bottom: 4px; font-size: 14px; }
 
 /* 文章页脚 */
 .post-footer {
   margin-top: 3rem;
-  padding-top: 1.6rem;
+  padding-top: 24px;
   border-top: 1px solid var(--border);
 }
 .post-footer .tag-list { margin-bottom: 1.5rem; }
@@ -921,11 +934,11 @@ button, input, select, textarea {
 .post-nav {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.9rem;
+  gap: 16px;
 }
 .post-nav a {
   display: block;
-  padding: 0.9rem 1.1rem;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elevated);
@@ -943,31 +956,31 @@ button, input, select, textarea {
 }
 .post-nav .post-nav-label {
   display: block;
-  margin-bottom: 0.2rem;
+  margin-bottom: 4px;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 12px;
   letter-spacing: 0.08em;
 }
-.post-nav .post-nav-title { font-size: 0.95rem; font-weight: 600; }
+.post-nav .post-nav-title { font-size: 16px; font-weight: 600; }
 .post-nav .is-next { text-align: right; }
 
 /* 10. 归档页 -------------------------------------------------------------- */
 .page-head {
-  padding: 3.2rem 0 1.6rem;
+  padding: 48px 0 24px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, var(--bg-subtle), var(--bg));
 }
-.page-title { margin: 0 0 0.5rem; font-size: clamp(1.7rem, 4.6vw, 2.2rem); }
+.page-title { margin: 0 0 8px; font-size: 24px; }
 .page-desc { max-width: 640px; margin: 0; color: var(--text-secondary); }
 
-.year-group { margin-bottom: 2.6rem; }
+.year-group { margin-bottom: 40px; }
 
 .year-label {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 0 0 1.1rem;
-  font-size: 1.5rem;
+  margin: 0 0 16px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text);
 }
@@ -977,15 +990,15 @@ button, input, select, textarea {
   height: 1px;
   background: var(--border);
 }
-.year-label .year-count { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+.year-label .year-count { font-size: 13px; font-weight: 500; color: var(--text-muted); }
 
 .archive-list { margin: 0; padding: 0; list-style: none; }
 
 .archive-item {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
-  gap: 0.4rem 1.1rem;
-  padding: 0.75rem 0.9rem;
+  gap: 8px 16px;
+  padding: 12px 16px;
   border-radius: var(--radius);
   border-bottom: 1px solid var(--border);
   transition: background-color var(--dur) var(--ease);
@@ -995,26 +1008,26 @@ button, input, select, textarea {
 
 .archive-date {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
-  padding-top: 0.12rem;
+  padding-top: 4px;
 }
 .archive-title { font-size: 1rem; font-weight: 600; color: var(--text); }
 .archive-title:hover { color: var(--accent); text-decoration: none; }
-.archive-summary { margin: 0.15rem 0 0; color: var(--text-muted); font-size: 0.85rem; }
+.archive-summary { margin: 4px 0 0; color: var(--text-muted); font-size: 14px; }
 
 @media (max-width: 560px) {
-  .archive-item { grid-template-columns: 1fr; gap: 0.15rem; }
+  .archive-item { grid-template-columns: 1fr; gap: 4px; }
 }
 
 /* 11. 页脚 ---------------------------------------------------------------- */
 .site-footer {
   margin-top: auto;
-  padding: 2.6rem 0 2rem;
+  padding: 40px 0 32px;
   border-top: 1px solid var(--border);
   background: var(--bg-subtle);
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 14px;
 }
 
 .footer-grid {
@@ -1023,20 +1036,20 @@ button, input, select, textarea {
   gap: 2rem;
   margin-bottom: 2rem;
 }
-.footer-brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
+.footer-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .footer-brand .brand-mark { width: 28px; height: 28px; }
 .footer-brand strong { color: var(--text); font-size: 1rem; }
 .footer-about { margin: 0; max-width: 340px; }
 .footer-heading {
-  margin: 0 0 0.7rem;
+  margin: 0 0 12px;
   color: var(--text);
-  font-size: 0.82rem;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .footer-links { margin: 0; padding: 0; list-style: none; }
-.footer-links li { margin-bottom: 0.45rem; }
+.footer-links li { margin-bottom: 8px; }
 .footer-links a { color: var(--text-secondary); }
 .footer-links a:hover { color: var(--accent); }
 
@@ -1045,14 +1058,14 @@ button, input, select, textarea {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
-  padding-top: 1.4rem;
+  gap: 8px;
+  padding-top: 24px;
   border-top: 1px solid var(--border);
 }
 .footer-bottom p { margin: 0; }
 
 @media (max-width: 720px) {
-  .footer-grid { grid-template-columns: 1fr; gap: 1.6rem; }
+  .footer-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 /* 回到顶部 */
@@ -1097,8 +1110,8 @@ button, input, select, textarea {
   background-clip: text;
   color: transparent;
 }
-.center-title { margin: 0.6rem 0 0.6rem; font-size: 1.5rem; }
-.center-desc { max-width: 480px; margin: 0 auto 1.6rem; color: var(--text-secondary); }
+.center-title { margin: 8px 0; font-size: 24px; }
+.center-desc { max-width: 480px; margin: 0 auto 24px; color: var(--text-secondary); }
 .center-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
 
 /* 13. 工具类 / 动效 ------------------------------------------------------- */
@@ -1111,9 +1124,9 @@ button, input, select, textarea {
 }
 
 @media (max-width: 480px) {
-  .container { padding-inline: 18px; }
-  .article-wrap { padding: 2rem 18px 3rem; }
-  .post-card { padding: 1.15rem 1.1rem; }
+  .container { padding-inline: 16px; }
+  .article-wrap { padding: 32px 16px 48px; }
+  .post-card { padding: 20px 16px; }
   .hero { padding: 3rem 0 2.5rem; }
   .prose { font-size: 1rem; }
 }
@@ -1191,20 +1204,20 @@ button, input, select, textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1.4rem 0 0;
+  margin: 24px 0 0;
   padding: 0;
   list-style: none;
 }
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.32rem 0.8rem;
+  gap: 4px;
+  padding: 4px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--bg-subtle);
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1213,7 +1226,7 @@ button, input, select, textarea {
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-  gap: 1.1rem;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1222,7 +1235,7 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 1.3rem 1.35rem;
+  padding: 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elevated);
@@ -1239,44 +1252,44 @@ button, input, select, textarea {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 8px;
 }
-.project-name { margin: 0; font-size: 1.02rem; overflow-wrap: anywhere; }
+.project-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
 .project-name a { color: var(--text); }
 .project-name a:hover { color: var(--accent); text-decoration: none; }
 .lang-tag {
   flex: none;
-  padding: 0.1rem 0.5rem;
+  padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
   background: var(--bg-subtle);
   color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 12px;
 }
-.project-desc { margin: 0.6rem 0 0; color: var(--text-secondary); font-size: 0.9rem; }
+.project-desc { margin: 8px 0 0; color: var(--text-secondary); font-size: 14px; }
 .project-points {
-  margin: 0.7rem 0 0;
+  margin: 12px 0 0;
   padding-left: 1.15em;
   color: var(--text-secondary);
-  font-size: 0.87rem;
+  font-size: 14px;
 }
-.project-points li { margin-bottom: 0.3em; }
+.project-points li { margin-bottom: 4px; }
 .project-points li:last-child { margin-bottom: 0; }
 .project-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.9rem;
+  gap: 8px 16px;
   margin-top: auto;
-  padding-top: 0.9rem;
+  padding-top: 16px;
   border-top: 1px dashed var(--border);
-  font-size: 0.85rem;
+  font-size: 14px;
 }
-.project-card .project-foot { margin-top: 1.1rem; }
-.project-link { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500; }
+.project-card .project-foot { margin-top: 16px; }
+.project-link { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
 .project-link svg { width: 15px; height: 15px; }
-.project-group { margin-bottom: 2.8rem; }
+.project-group { margin-bottom: 48px; }
 .project-group:last-of-type { margin-bottom: 0; }
 
 .timeline {
@@ -1285,7 +1298,7 @@ button, input, select, textarea {
   list-style: none;
   border-left: 2px solid var(--border);
 }
-.timeline li { position: relative; padding-bottom: 1.4rem; }
+.timeline li { position: relative; padding-bottom: 24px; }
 .timeline li:last-child { padding-bottom: 0; }
 .timeline li::before {
   content: "";
@@ -1301,21 +1314,21 @@ button, input, select, textarea {
 .timeline-date {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--accent);
 }
-.timeline p { margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.93rem; }
+.timeline p { margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 16px; }
 
 .info-list { margin: 0; padding: 0; list-style: none; }
 .info-list li {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 0.8rem;
-  padding: 0.62rem 0;
+  gap: 8px 12px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 0.93rem;
+  font-size: 16px;
 }
 .info-list li:last-child { border-bottom: 0; }
 .info-label { flex: none; width: 6.2em; color: var(--text-muted); }
@@ -1334,7 +1347,7 @@ button, input, select, textarea {
 /* ---- 16. 分组标题里的计数（项目页 / 标签页共用） ---- */
 .section-title .tag-count {
   margin-left: 0.7em;
-  font-size: 0.72rem;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
   color: var(--text-muted);
@@ -1486,4 +1499,42 @@ button, input, select, textarea {
   .card-3d .atropos-shadow,
   .card-3d .atropos-highlight { display: none !important; }
 }
+
+/* ==========================================================================
+   18. 触达目标与响应式标题档位（对齐 DESIGN.md 第 1 / 4 / 5 节）
+   --------------------------------------------------------------------------
+   18.1 触达目标 ≥24×24（WCAG 2.2 SC 2.5.8）
+        句子行文里的内联链接是唯一豁免项：给它们加 padding 会撑开行距、
+        改变换行。所以这里只处理目录、侧栏、页脚、列表与卡片里那些
+        "块状"链接 —— inline-flex 撑到 24px 高，文字仍然垂直居中，
+        不加 padding、不改行距。
+   ========================================================================== */
+.section-link,
+.toc li a,
+.sidebar-list a,
+.footer-links a,
+.archive-title,
+.project-name a,
+.post-card-title a,
+.project-link,
+.read-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+
+/* 18.2 响应式标题档位
+   全部取自字号令牌（12/13/14/16/18/20/24/30/36/44）。这里不用 vw 插值：
+   插值会算出 30.4px / 35.2px 这种不在模数上的字号。
+   档位：窄屏 24 → ≥600px 30 → ≥960px 36；Hero 标题窄屏 30 → ≥960px 44。 */
+@media (min-width: 600px) {
+  .post-title,
+  .page-title { font-size: 30px; }
+}
+@media (min-width: 960px) {
+  .hero-title { font-size: 44px; }
+  .post-title,
+  .page-title { font-size: 36px; }
+}
+
 
