@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底 · SupermanCantFly</title>
+<meta name="description" content="starmerx_listing 的安全设计：Playwright 确定性 DOM 操作、钉钉扫码 + storageState、有界二分利润试算、默认干运行与 DOM 状态验收。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="../feed.xml">
+<link rel="stylesheet" href="../assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+<div class="progress-bar" id="progress-bar" role="presentation"></div>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="../index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="../index.html">首页</a></li>
+        <li><a href="../projects.html">项目</a></li>
+        <li><a href="../archive.html">归档</a></li>
+        <li><a href="../tags.html">标签</a></li>
+        <li><a href="../about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="article-wrap">
+    <article class="prose">
+      <header class="post-header">
+        <p class="post-eyebrow">浏览器自动化</p>
+        <h1 class="post-title">确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</h1>
+        <p class="post-meta">
+          <time datetime="2026-09-14">2026 年 9 月 14 日</time>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>约 3500 字</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>阅读约 9 分钟</span>
+        </p>
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=Playwright">Playwright</a></li><li><a class="tag" href="../tags.html?tag=%E6%B5%8F%E8%A7%88%E5%99%A8%E8%87%AA%E5%8A%A8%E5%8C%96">浏览器自动化</a></li><li><a class="tag" href="../tags.html?tag=Python">Python</a></li><li><a class="tag" href="../tags.html?tag=%E5%B7%A5%E7%A8%8B%E5%8C%96">工程化</a></li></ul>
+      </header>
+
+      <p class="lede">让 Agent 自己点页面听起来很酷，直到它在「批量上架」的按钮上多点了一次。上架自动化和爬虫不一样：爬虫跑错了最多拿到脏数据，上架跑错了是直接把商品挂到店铺上。<code>starmerx_listing</code> 这个项目从头到尾只贯彻一条原则——<strong>能被代码表达的规则，绝不交给模型</strong>；LLM 只在规则层失败之后才被允许出场。</p>
+
+      <nav class="toc" aria-label="本文目录">
+        <ol>
+          <li><a href="#why">「失控」是怎么发生的</a></li>
+          <li><a href="#stack">技术栈与四阶段编排</a></li>
+          <li><a href="#login">登录态：钉钉扫码 + storageState 的两天寿命</a></li>
+          <li><a href="#probe">勘察优先：先确认选择器，再谈执行</a></li>
+          <li><a href="#price">利润试算：用有界二分防死循环</a></li>
+          <li><a href="#dryrun">默认干运行</a></li>
+          <li><a href="#verify">每一步都用 DOM 状态验收</a></li>
+          <li><a href="#llm">LLM 被放在哪个位置</a></li>
+          <li><a href="#pending">没有做完的部分，写在 README 里</a></li>
+          <li><a href="#deploy">部署与服务化</a></li>
+          <li><a href="#summary">小结</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="why">「失控」是怎么发生的</h2>
+
+      <p>先看这个项目要解决的问题：把「产品池 → 加入上架计划 → 图片/价格校验 → 批量上架」这条流程自动化，MVP 范围收窄到圣诞花环单品类。它的反面教材非常典型：</p>
+
+      <ul>
+        <li>把「判断这张图是不是白底主图」交给视觉模型，模型今天说是、明天说不是；</li>
+        <li>把「这个价格算出来是赚是亏」交给模型心算，它给你一个看起来很合理的数字；</li>
+        <li>把「点哪一个按钮」交给模型理解页面，页面改版后它开始点错地方。</li>
+      </ul>
+
+      <p>这三种失败有一个共同特征：<strong>它们都不会报错</strong>。程序照常跑完，日志里一片绿，只有店铺后台知道出了事。所以这个项目的对抗手段不是「让模型更聪明」，而是把流程切成两类：<strong>规则层（纯代码、可复现、会抛错）和兜底层（模型，只在规则层失败时介入）</strong>。</p>
+
+      <h2 id="stack">技术栈与四阶段编排</h2>
+
+      <p>技术栈就三样：Python 3.13、Playwright 1.62、以及作为兜底的阿里云通义千问 Qwen。Playwright 负责确定性 DOM 操作，Qwen 是预留位——只有在规则层失败时才被调用。</p>
+
+      <p>入口是 <code>run.sh</code>，<code>src/main.py</code> 是四阶段编排：</p>
+
+      <div class="code-block"><pre><code>starmerx_listing/
+├── run.sh                 # 一键启动脚本
+├── config.json            # 全部配置（固定表单值/类目/校验规则/安全开关）
+├── src/
+│   ├── main.py            # 四阶段编排入口
+│   ├── login.py           # 钉钉扫码 + storageState 持久化
+│   ├── phase1.py          # 产品池 → 加入上架计划
+│   ├── phase2.py          # 图片/价格校验 + 批量上架
+│   ├── price_calc.py      # 利润试算引擎（有界二分，防死循环）
+│   ├── dom.py             # DOM 操作辅助
+│   └── config.py          # 配置/日志
+├── scripts/
+│   └── probe_product_pool.py  # 独立勘察工具
+└── runtime/               # storage_state.json、勘察截图、日志</code></pre></div>
+
+      <p>把配置单独放进 <code>config.json</code> 是个不太起眼但很重要的决定：固定表单值、类目、校验规则、安全开关全在里面，于是「改规则」不需要改代码，也就不会在改规则的时候顺手改坏流程。</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">配置项</th><th scope="col">值</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>平台 / 站点 / 店铺 / 品牌</td><td>Tik Tok / tiktok.com / Garvee Mate / 无品牌</td></tr>
+            <tr><td>系统类目（产品池）</td><td>家居厨具 → 节日饰品 → 圣诞花环花带 → 圣诞花带装饰</td></tr>
+            <tr><td>平台类目（上架表单）</td><td>Home Supplies → Festive → Wreaths, Garlands &amp; Swags</td></tr>
+            <tr><td>SPU 图片</td><td>8 张（含白底主图），SKU 色标一一对应</td></tr>
+            <tr><td>活动营销费占比</td><td>50%</td></tr>
+            <tr><td>个人利润目标</td><td>4%–6%（通过调「公司利润率」实现）</td></tr>
+            <tr><td>公司利润率边界</td><td>0.30–0.60（<strong>待确认</strong>）</td></tr>
+            <tr><td>GTIN / 生成方式</td><td>豁免 / 按 SPU 维度生成多上架计划</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <blockquote>
+        <p>一个版本差异值得说明：早期的一份项目宣传页把这条流程写成「NestJS + Playwright 的五步流水线」，而仓库代码与 README 的现状是 <strong>Python 3.13 + Playwright 的四阶段编排</strong>（<code>src/main.py</code>）。本文以仓库为准——这也是本文所有参数与文件名的来源。</p>
+      </blockquote>
+
+      <h2 id="login">登录态：钉钉扫码 + storageState 的两天寿命</h2>
+
+      <p>登录用的是钉钉扫码，登录结果通过 Playwright 的 <code>storageState</code> 持久化到 <code>runtime/storage_state.json</code>。命令行里第一次要显式跑一次：</p>
+
+      <div class="code-block"><pre><code>./run.sh login                # 弹出浏览器，钉钉扫码（首次/过期）</code></pre></div>
+
+      <p>这里有一个必须写进设计里的现实：<strong>这份登录态大约 2 天就会过期</strong>。它不是「配好就一劳永逸」的那类凭据。过期之后的处理方式决定了这套系统是「能长期跑」还是「跑三天就要人管」：</p>
+
+      <ul>
+        <li>任务开始前检查 <code>storage_state.json</code> 是否还可用，不可用就立刻停下并提示重扫，而不是带着失效的登录态把后面每一步都跑出奇怪的错误；</li>
+        <li>把「过期提醒」当成常驻功能——README 里也写了 <code>cron</code> 每日定时 + storageState 过期自动提醒重扫；</li>
+        <li>不要试图绕过扫码去硬编码凭据，这会把一个「两天一次的人工动作」变成「一个迟早会炸的隐式依赖」。</li>
+      </ul>
+
+      <h2 id="probe">勘察优先：先确认选择器，再谈执行</h2>
+
+      <p>项目里有一条硬性流程：<strong>任何新页面，先跑 probe 确认选择器，确认后才进入执行模式。</strong></p>
+
+      <div class="code-block"><pre><code>./run.sh probe-phase1         # 勘察产品池页
+./run.sh probe-phase2         # 勘察上架计划页</code></pre></div>
+
+      <p><code>scripts/probe_product_pool.py</code> 是一个独立的勘察工具，只观察、不修改数据。这个「先勘察」的动作解决的是一个很典型的悖论：写自动化最难的部分不是点击，而是<strong>在你还没看清页面结构之前，就得先写选择器</strong>。没有勘察步骤，你就只能一边跑真流程一边调选择器——而每一次失败的尝试，都可能已经在页面上留下痕迹。</p>
+
+      <p>勘察的产物留在 <code>runtime/</code> 下（截图与日志），它同时充当了「这个选择器当时长什么样」的证据。页面改版导致自动化失效时，翻一眼旧截图就能确认是页面变了，还是代码写错了。</p>
+
+      <h2 id="price">利润试算：用有界二分防死循环</h2>
+
+      <p>整条流程里最需要「确定性」的地方是利润试算。业务约束是这样的：个人利润目标定在 4%–6%，而达成方式是<strong>反向调整「公司利润率」</strong>——因为个人利润是公司利润率的函数。可调边界暂定在 0.30–0.60。</p>
+
+      <p>这就是一个典型的单调函数求根问题：公司利润率越高，个人利润越低（或反之），中间存在一个让个人利润落进 4%–6% 区间的取值。用二分法求解最自然，但二分法有一个必须提前掐死的风险：<strong>如果目标区间在当前边界内根本不可达，朴素实现会永远迭代下去</strong>。</p>
+
+      <p><code>src/price_calc.py</code> 的约束是：<strong>最多 20 次迭代，未命中即报「需人工介入」，绝不无限循环</strong>。这条规则的意义超出这一个函数——它代表了一种态度：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">失败情形</th><th scope="col">坏的做法</th><th scope="col">这个项目里的做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>目标区间不可达</td><td>一直试，直到超时</td><td>20 次迭代后停止，明确报「需人工介入」</td></tr>
+            <tr><td>公式是占位模型</td><td>假装结果可信</td><td>在 README 里写明 <code>K=0.24</code> 是占位模型，需替换</td></tr>
+            <tr><td>边界值不确定</td><td>按猜测值上线</td><td>列为 P1 待确认事项，上线前必须核对</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>第三条尤其值得学。README 里明明白白写着：如果利润率边界错误，利润试算可能永远无法命中区间而死循环——<strong>所以需要人在真实的「利润测算」弹窗里确认可调范围</strong>。把「我不知道」写进文档，比让程序假装知道要负责任得多。</p>
+
+      <h2 id="dryrun">默认干运行</h2>
+
+      <p>所有阶段默认是干运行：只检查、只输出清单，不真正上架。要真执行，必须显式加参数：</p>
+
+      <div class="code-block"><pre><code># 跑通单品类（默认干运行：只检查不上架）
+./run.sh phase1 --max-sku 1   # 选 1 个 SKU 加入上架计划
+./run.sh phase2              # 图片/价格校验（干运行）
+
+# 正式执行（确认无误后）
+./run.sh phase1 --no-dry-run --max-sku 5
+./run.sh phase2 --no-dry-run</code></pre></div>
+
+      <p>注意 <code>--max-sku</code> 这个参数的存在本身也是一种安全设计：它让「先小批量验证」成为一个不需要额外开发就能做到的动作。默认干运行 + 限量执行，两者叠加之后的实际效果是——<strong>从「写完代码」到「真实上架」之间，隔着两次显式的确认</strong>。这两次确认谁都不能省，包括自己。</p>
+
+      <h2 id="verify">每一步都用 DOM 状态验收</h2>
+
+      <p>自动化脚本最常见的坏习惯是「点完就走」：<code>click()</code> 之后不检查任何东西，假定它成功了。这个项目的要求是：<strong>每次点击后都用 DOM 状态确认，失败即中止</strong>——具体确认的对象是输入框的 value、复选框的 checked 这类状态量，而不是「页面看起来变了」。</p>
+
+      <p>这条规则把「静默失败」转成了「显式报错」。在批量操作里，静默失败是最贵的：第 3 个 SKU 没勾上，程序继续往下跑，最后你得到的是 100 个商品里混着几个配置错误的——而这些错误要花比跑一遍自动化多得多的时间去清理。</p>
+
+      <h2 id="llm">LLM 被放在哪个位置</h2>
+
+      <p>把前面的规则串起来，LLM 的位置就非常清楚了：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">环节</th><th scope="col">执行者</th><th scope="col">理由</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>选择器定位与点击</td><td>Playwright（确定性 DOM）</td><td>可复现，失败会抛错</td></tr>
+            <tr><td>利润试算</td><td>纯代码 + 有界二分</td><td>数字必须可复现，不能「感觉差不多」</td></tr>
+            <tr><td>图片/价格校验</td><td>规则优先，Qwen 兜底</td><td>规则能判的就别问模型</td></tr>
+            <tr><td>登录</td><td>钉钉扫码 + storageState</td><td>凭据交给平台，不自己发明</td></tr>
+            <tr><td>视觉/语义兜底</td><td>通义千问 Qwen（预留）</td><td>只在规则层失败时介入</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>这张表可以概括成一句话：<strong>把模型当作「规则失败之后的下一个人」，而不是「第一步就上场的那个人」</strong>。它的输出不需要稳定，因为它本来就不是主路径；主路径必须稳定，所以主路径里不能有它。</p>
+
+      <h2 id="pending">没有做完的部分，写在 README 里</h2>
+
+      <p>这个仓库有一节叫「⚠️ 待确认事项（上线前必须解决）」，里面列了两条：一是公司利润率的可调边界（暂定 0.30–0.60）；二是 <code>src/price_calc.py</code> 里的个人利润公式<strong>是占位模型</strong>（用 <code>K=0.24</code> 做缩放），需要勘察到真实「利润测算」弹窗的逻辑之后替换成精确公式。</p>
+
+      <p>把占位模型写在最显眼的位置，是一种工程上的诚实。任何接手这个仓库的人（包括三个月后的自己）都会知道：<strong>利润数字目前只能当作流程通路的证据，不能当作决策依据</strong>。相比之下，「假装公式是对的，等出问题再说」才是真正的技术债。</p>
+
+      <h2 id="deploy">部署与服务化</h2>
+
+      <p>README 给的部署建议是阿里云轻量 2C2G 的 Ubuntu（香港或新加坡节点，需要先测试 <code>op.starmerx.com</code> 的可达性），用 <code>cron</code> 做每日定时，并配合 storageState 的过期提醒。这个规模的选择很务实：流程本身不重，重的是浏览器——而 Playwright 在 2G 内存上跑单实例是够的，前提是别并发开一堆页面。</p>
+
+      <p>需要说明的是，完整的部署文档（<code>docs/DEPLOYMENT.md</code>）在仓库里标注为「待编写」。所以这一节只到「推荐什么机器、怎么定时」为止，再往下写就是编造了。</p>
+
+      <h2 id="summary">小结</h2>
+
+      <p>这个项目的所有设计选择，都可以用同一把尺子量：<strong>这一步出错的时候，我会不会知道？</strong>干运行让你知道、DOM 验收让你知道、有界二分让你知道、勘察截图让你知道、把占位模型写进 README 也让你知道。</p>
+
+      <p>反过来说，让 LLM 自由发挥之所以在上架场景里危险，不是因为模型不够聪明，而是因为<strong>它的失败方式是不报错的失败</strong>。确定性的代码不是「低级方案」，恰恰相反：在一个会真金白银出错的场景里，可复现、会抛错、有边界，才是最值钱的三个属性。</p>
+
+      <footer class="post-footer">
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=Playwright">Playwright</a></li><li><a class="tag" href="../tags.html?tag=%E6%B5%8F%E8%A7%88%E5%99%A8%E8%87%AA%E5%8A%A8%E5%8C%96">浏览器自动化</a></li><li><a class="tag" href="../tags.html?tag=Python">Python</a></li><li><a class="tag" href="../tags.html?tag=%E5%B7%A5%E7%A8%8B%E5%8C%96">工程化</a></li></ul>
+        <nav class="post-nav" aria-label="文章翻页">
+          <a class="post-nav-prev" href="index-first-filesystem-rag.html"><span class="post-nav-label">← 上一篇</span><span class="post-nav-title">为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</span></a>
+          <a class="is-next" href="rag-cs-bot-manual-handoff.html"><span class="post-nav-label">下一篇 →</span><span class="post-nav-title">用 RAG 做电商客服：怎么用知识库边界把售后强制转人工</span></a>
+        </nav>
+      </footer>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="../index.html">首页</a></li>
+          <li><a href="../projects.html">项目清单</a></li>
+          <li><a href="../archive.html">文章归档</a></li>
+          <li><a href="../tags.html">标签索引</a></li>
+          <li><a href="../about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="../feed.xml">RSS 订阅</a></li>
+          <li><a href="../sitemap.xml">站点地图</a></li>
+          <li><a href="../robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="../about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
+  </div>
+</footer>
+
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="../assets/main.js" defer></script>
+</body>
+</html>

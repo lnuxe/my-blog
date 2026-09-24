@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出 · SupermanCantFly</title>
+<meta name="description" content="pickled-fish 的 macOS 微信导出管线：LLDB 抓 passphrase、PBKDF2 派生密钥、解密 db_storage/*.db，再用 wxecho 写出 chat.txt。含版本前提、目录结构与合规边界。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="../feed.xml">
+<link rel="stylesheet" href="../assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+<div class="progress-bar" id="progress-bar" role="presentation"></div>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="../index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="../index.html">首页</a></li>
+        <li><a href="../projects.html">项目</a></li>
+        <li><a href="../archive.html">归档</a></li>
+        <li><a href="../tags.html">标签</a></li>
+        <li><a href="../about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="article-wrap">
+    <article class="prose">
+      <header class="post-header">
+        <p class="post-eyebrow">逆向工程</p>
+        <h1 class="post-title">把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出</h1>
+        <p class="post-meta">
+          <time datetime="2026-09-28">2026 年 9 月 28 日</time>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>约 3600 字</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>阅读约 9 分钟</span>
+        </p>
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=%E9%80%86%E5%90%91">逆向</a></li><li><a class="tag" href="../tags.html?tag=%E5%BE%AE%E4%BF%A1">微信</a></li><li><a class="tag" href="../tags.html?tag=SQLCipher">SQLCipher</a></li><li><a class="tag" href="../tags.html?tag=macOS">macOS</a></li></ul>
+      </header>
+
+      <p class="lede">聊天的截图是最贵的一种「省事」：一屏只能装二十来条消息，上下文被裁掉一半，结论常常建立在被裁掉的那一半上。要做任何真正靠谱的分析，第一步都不是「怎么回」，而是把整段聊天变成一份可以检索、可以统计的文本。这篇文章拆开 <code>pickled-fish</code> 里的导出管线 <code>skills/wechat-mac-export</code>：密钥从进程内存里怎么取、passphrase 为什么还要过一遍 PBKDF2、<code>db_storage</code> 里到底躺着什么，以及为什么导出成 <code>chat.txt</code> 才算真正「能看懂」。</p>
+
+      <nav class="toc" aria-label="本文目录">
+        <ol>
+          <li><a href="#why">为什么先解决「导出」这件事</a></li>
+          <li><a href="#version">版本前提：WeChat 4.1.10+ 与 db_storage</a></li>
+          <li><a href="#key">密钥从哪来：用 LLDB 抓 passphrase</a></li>
+          <li><a href="#pbkdf2">passphrase 不是 key：PBKDF2 在中间做了什么</a></li>
+          <li><a href="#decrypt">解密 db_storage/*.db</a></li>
+          <li><a href="#export">导出成 chat.txt</a></li>
+          <li><a href="#pipeline">导出来之后：整段分析，而不是截图分析</a></li>
+          <li><a href="#install">把它装起来</a></li>
+          <li><a href="#boundary">边界：这件事能做什么，不能做什么</a></li>
+          <li><a href="#summary">小结</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="why">为什么先解决「导出」这件事</h2>
+
+      <p>先说清楚 <code>pickled-fish</code>（泡菜鱼）是什么。它是跑在 Cursor Agent 上的技能包，仓库里写着三块已经落地的能力：把本人 Mac 微信的聊天导出成可读的 <code>chat.txt</code>、对整段聊天做时间线与话轮分析、再按问题从本地知识包里挑理论和话术。它的口号是「你听得到吗 · 先看懂，再开口」——注意顺序，是<strong>先看懂</strong>。</p>
+
+      <p>在这个顺序里，导出是绕不过去的第一环。理由很实际：</p>
+
+      <ul>
+        <li><strong>截图是有损压缩。</strong>你想问的是「这段时间她为什么变淡了」，截图给你的却只有最后二十条消息。冷场发生在第 300 条之后还是第 3000 条之后，截图看不出来。</li>
+        <li><strong>截图不能统计。</strong>话轮数、回复间隔、谁先开口、哪一天之后语气变了——这些都是需要遍历全部消息才能算出来的量。</li>
+        <li><strong>截图不能检索。</strong>「上次她提过的那件事」，如果没有可搜索的文本，就只能靠翻聊天记录翻到手酸。</li>
+      </ul>
+
+      <p>所以导出管线不是附属功能，而是整个技能包的地基：没有 <code>chat.txt</code>，后面的分析都只能退化成「看着几张图猜」。</p>
+
+      <h2 id="version">版本前提：WeChat 4.1.10+ 与 db_storage</h2>
+
+      <p>微信从 4.x 开始，macOS 版的本地数据被组织进一个叫 <code>db_storage</code> 的目录，消息按业务拆成多个 SQLite 数据库，仓库 README 里写的就是 <code>db_storage/*.db</code>，其中消息主库是 <code>db_storage/message_*.db</code>。</p>
+
+      <p>关键点在于：<strong>这些 <code>.db</code> 不是能直接双击打开的明文库</strong>。它们经过加密，用普通的 SQLite 客户端打开只会得到一句「file is not a database」。这也是整条管线为什么要和密钥打交道的全部原因。</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">层次</th><th scope="col">是什么</th><th scope="col">为什么重要</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>版本前提</td><td>WeChat 4.1.10+（macOS）</td><td>目录结构与加密方式在 4.x 上才成立，低版本走的是另一套路径</td></tr>
+            <tr><td>数据载体</td><td><code>db_storage/*.db</code></td><td>加密后的 SQLite 库，消息在 <code>message_*.db</code></td></tr>
+            <tr><td>密钥材料</td><td>进程内存里的 passphrase</td><td>微信运行时持有它，并在其基础上派生数据库密钥</td></tr>
+            <tr><td>输出</td><td><code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code></td><td>人能读、程序能搜、能被后面的分析管线消费</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <blockquote>
+        <p>先确认版本，再动手。这条规则在逆向相关的工作里几乎总是成立：同一个思路换个版本号，成功率可能从「十分钟搞定」变成「一整天白干」。仓库里明确标注的支持范围是 WeChat 4.1.10+，超出这个范围就不是「照着做」的问题了。</p>
+      </blockquote>
+
+      <h2 id="key">密钥从哪来：用 LLDB 抓 passphrase</h2>
+
+      <p>数据库是加密的，那就得有密钥；密钥不能靠猜——一个正常强度的 passphrase 没有任何爆破价值。剩下的路只有一条：<strong>微信自己在运行时会用到它，那就去它用到的地方拿</strong>。</p>
+
+      <p>这正是 <code>wcdb-key-tool</code> 做的事。它是一个独立的小工具（不在 <code>pickled-fish</code> 仓库里，属于外部依赖），思路是：用 LLDB 这个调试器附加到微信进程上，在数据库密钥被派生出来的位置把 passphrase 读出来。工具名里的 WCDB 指的正是微信那套基于 SQLite 的数据库组件——加密就发生在这一层。</p>
+
+      <p>为什么是 LLDB 而不是别的？因为 macOS 上要观察一个正在运行的进程内部状态，调试器是最直接的手段：可以附加进程、可以下断点、可以在断点命中时读取寄存器和内存里的值。整个过程不需要修改微信的任何文件，只是「在旁边看着它把密钥算出来」。</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">做法</th><th scope="col">可行性</th><th scope="col">说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>爆破 passphrase</td><td>不可行</td><td>搜索空间过大，纯属浪费电</td></tr>
+            <tr><td>从磁盘文件里找</td><td>不可行</td><td>密钥不以明文形式躺在数据目录里</td></tr>
+            <tr><td>LLDB 附加进程读取</td><td>本管线的做法</td><td>在密钥派生处取值，拿到的就是微信自己用的那一份</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>需要提醒的是，这一步涉及系统层面的调试权限，具体需要在系统里开哪些设置、工具需要什么参数，<strong>以 <code>wcdb-key-tool</code> 自己的说明为准</strong>——本文只讲它在整条管线里的位置，不复述另一份会过期的文档。</p>
+
+      <h2 id="pbkdf2">passphrase 不是 key：PBKDF2 在中间做了什么</h2>
+
+      <p>拿到 passphrase 就以为万事大吉，是这条管线里最容易犯的错。真实情况是：<strong>passphrase 是原料，不是密钥</strong>。数据库解密需要的是从 passphrase 派生出来的 key，中间的派生函数就是 PBKDF2。</p>
+
+      <p>为什么要多这一步？因为人选的 passphrase 通常短、熵低。如果直接把 passphrase 当密钥用，攻击者每秒钟可以试几百万次。PBKDF2 这类<strong>密钥派生函数（KDF）</strong>的设计目标正好相反：让每一次尝试都变得昂贵——通过加盐（同样的 passphrase 在不同场景派生出不同 key）和大量迭代（把一次尝试的成本抬高几个数量级），把「每秒几百万次」压到「每秒几次」。</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">概念</th><th scope="col">它是什么</th><th scope="col">在本管线里的角色</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>passphrase</td><td>微信持有的原始口令材料</td><td>LLDB 抓取的目标，属于中间产物</td></tr>
+            <tr><td>KDF（PBKDF2）</td><td>把口令材料扩展成密钥的函数</td><td>必须按同一套参数重算，才能得到相同的 key</td></tr>
+            <tr><td>key</td><td>真正参与数据库加解密的值</td><td>交给解密步骤，用来打开 <code>db_storage/*.db</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>这个区分在实际操作中有个很直接的后果：<strong>只抄走 passphrase 而不复现派生参数，是打不开库的</strong>。加盐值、迭代次数、输出长度，任何一个对不上，派生出来的 key 就是另一串字节。所以这部分工作最好交给已经封装好的工具去做，而不是自己手搓一遍——手搓的版本会在微信升级后静默失效，而且失效时表现出的症状（「库打不开」）和密钥错误完全一样，非常难排查。</p>
+
+      <h2 id="decrypt">解密 db_storage/*.db</h2>
+
+      <p>派生出的 key 交给解密步骤，逐个打开 <code>db_storage</code> 下的库，得到可以直接用 SQLite 查询的副本。这一段的工程要点不是算法，而是纪律：</p>
+
+      <ul>
+        <li><strong>只读、不动原库。</strong>解密应该产出新的文件，而不是原地改写。原始数据是唯一的一份，一旦写坏就没有第二份可对照。</li>
+        <li><strong>先退微信再操作。</strong>库正在被写入时复制，很容易拿到一个字段不完整的快照；顺序上应当先让微信安静下来。</li>
+        <li><strong>把密钥当密码对待。</strong>仓库的边界说明里专门写了一句：密钥、<code>chat.txt</code> 和自定义隐私包都不要提交到公开仓库。这句话比任何技术细节都重要。</li>
+      </ul>
+
+      <p>解出来的库就是标准的 SQLite：联系人、会话、消息各在自己的表里，用任意客户端都能查。到这一步，「可检索」已经实现了一半，但它仍然不方便给人看——你不可能指望自己每次都用 SQL 去回忆一段对话。所以还需要最后一步。</p>
+
+      <h2 id="export">导出成 chat.txt</h2>
+
+      <p>最后一步由 <code>@walkerch/wxecho</code> 完成。仓库里给出的用法就一条命令：</p>
+
+      <div class="code-block"><pre><code>wxecho export "昵称"</code></pre></div>
+
+      <p>执行之后，会在下载目录下按联系人分文件夹写出结果：</p>
+
+      <div class="code-block"><pre><code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code></pre></div>
+
+      <p>除了纯文本 <code>chat.txt</code>，管线里也支持 json 与 csv 形式——文本适合人和 Agent 直接读，结构化格式适合自己写脚本做统计。子命令和参数以工具自身的帮助信息为准，这里只固定这条最短路径。</p>
+
+      <p>把整条链路连起来看，数据是这样流动的：</p>
+
+      <div class="code-block"><pre><code>Mac WeChat 4.x
+  db_storage/message_*.db
+        │  wechat-mac-export
+        │  (wcdb-key-tool → 明文库 → wxecho)
+        ▼
+  chat.txt / json / csv
+        │  local-chat-pipeline
+        │  (时间线 · 话轮 · 转折)
+        ▼
+  kb-rag 读 REGISTRY.md
+        │  选 ≤2 个 pack
+        ▼
+  1–2 个关键点 + 可发送原文或「先不发」
+  packs_used: [...]</code></pre></div>
+
+      <p>注意这条链路里有一个容易被忽略的设计：<strong>导出与分析是分开的两件事</strong>。导出只负责把数据还原成人能读的样子，不掺杂任何判断；判断留给后面的分析环节。这样做的好处是，当分析结论可疑时，你可以回到原文核对，而不是怀疑「是不是导出的时候就丢东西了」。</p>
+
+      <h2 id="pipeline">导出来之后：整段分析，而不是截图分析</h2>
+
+      <p><code>pickled-fish</code> 的中间一环是 <code>skills/qingsheng/references/local-chat-pipeline.md</code>。它处理的对象是「上万行导出文本」，做的是时间线、话轮、冷场与转折点的统计。这一步的价值，用一句话概括就是：<strong>把「我感觉最近不太对」变成「第 N 天开始，回复间隔的中位数变了」</strong>。</p>
+
+      <p>举几个只有整段文本才能回答的问题：</p>
+
+      <ul>
+        <li>是谁先开的口？这个比例在这段时间里有没有变化？</li>
+        <li>最长的一次冷场出现在哪里，前后发生了什么？</li>
+        <li>话题是被谁终止的？有多少次是「对方回了一个字之后就没有下文」？</li>
+        <li>转折点是渐变的，还是某一件具体的事之后突然出现的？</li>
+      </ul>
+
+      <p>分析完再进入知识库环节：<code>kb-rag</code> 先读 <code>knowledge/REGISTRY.md</code> 这张路由表，选出不超过两个 pack，然后才展开具体内容，并在回答里强制标注 <code>packs_used</code>。也就是说，最终给你的不是「一堆理论」，而是<strong>一到两个关键点，外加一段可以直接发送的原文，或者一句「先不发」</strong>。</p>
+
+      <blockquote>
+        <p>这套流程里最反直觉、但最值得学的一点是：它把「不下结论」也当成一个合法输出。「先不发」是可以被交付的答案之一——这在情感场景里比在技术场景里更需要被显式支持。</p>
+      </blockquote>
+
+      <h2 id="install">把它装起来</h2>
+
+      <p>整包装进 Cursor 只要两步：</p>
+
+      <div class="code-block"><pre><code>git clone https://github.com/lnuxe/pickled-fish.git ~/.cursor/skills/pickled-fish
+bash ~/.cursor/skills/pickled-fish/scripts/install-skills.sh</code></pre></div>
+
+      <p><code>install-skills.sh</code> 会把四个入口软链到 <code>~/.cursor/skills/</code>：<code>pickled-fish</code>、<code>wechat-mac-export</code>、<code>qingsheng</code>、<code>kb-rag</code>。仓库的目录结构大致是这样：</p>
+
+      <div class="code-block"><pre><code>pickled-fish/
+├── SKILL.md                 # 总控：导出 → 选库 → 分析
+├── knowledge/
+│   ├── REGISTRY.md          # 路由表（意图 → pack id）
+│   ├── index.md             # 分类索引
+│   ├── packs/               # 已捆绑的 MIT 知识包
+│   └── custom/              # 你的私有包（默认不进公开 git）
+├── skills/
+│   ├── wechat-mac-export/   # macOS 微信解密与导出
+│   ├── kb-rag/              # 选包与 progressive disclosure
+│   └── qingsheng/           # 中文恋爱实操 + local-chat 管线
+└── scripts/
+    ├── install-skills.sh    # 软链到 ~/.cursor/skills/
+    └── add-pack.sh          # git/本地目录装进 custom/</code></pre></div>
+
+      <p>导出那一步的本机依赖有三个：<code>@walkerch/wxecho</code>、<code>wcdb-key-tool</code>，以及 Python 3。前两个负责解密和导出，Python 负责把库里的内容整理成文本。想换一套自己的笔记，用 <code>scripts/add-pack.sh</code> 把它装进 <code>knowledge/custom/&lt;id&gt;</code> 即可。</p>
+
+      <h2 id="boundary">边界：这件事能做什么，不能做什么</h2>
+
+      <p>仓库里有一份 <code>DISCLAIMER.md</code>，内容很短，但三条都必须先读：<strong>仅限本人数据、非诊疗、禁止骚扰</strong>。把它翻译成工程语言，就是下面三条约束：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">约束</th><th scope="col">含义</th><th scope="col">落地做法</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>仅限本人数据</td><td>导出的对象必须是自己的账号数据</td><td>不导出、不转发他人的聊天记录</td></tr>
+            <tr><td>非诊疗</td><td>它给的是沟通建议，不是心理诊断</td><td>不把分析结论当成医学判断使用</td></tr>
+            <tr><td>禁止骚扰</td><td>对方明确拒绝时，任何话术都失效</td><td>「停联系」优先于任何 pack 里的技巧</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>还有一条工程纪律：密钥、<code>chat.txt</code>、自定义隐私包都不要提交公开仓库。<code>knowledge/custom/</code> 之所以默认不进公开 git，就是因为它存放的是私有的东西——设计上已经替你把这条线划好了，别自己把它越过去。</p>
+
+      <h2 id="summary">小结</h2>
+
+      <p>这条导出管线的全部复杂度，都集中在「拿到能用的密钥」这一步：用 LLDB 从进程里取 passphrase，再按同一套参数走 PBKDF2 派生 key，最后逐个解密 <code>db_storage/*.db</code>，交给 <code>wxecho</code> 写出 <code>chat.txt</code>。密钥之后的每一步，其实都是普通的工程活。</p>
+
+      <p>如果只带走一句话，我希望是这句：<strong>任何严肃的分析都必须建立在完整的、可检索的原始文本之上</strong>。截图不是数据，截图是数据的缩略图——而缩略图上的判断，通常比没有判断更危险。下一篇会接着讲导出之后的那一半：为什么给个人知识库配一套文件系统检索，比接一个向量库更划算。</p>
+
+      <footer class="post-footer">
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=%E9%80%86%E5%90%91">逆向</a></li><li><a class="tag" href="../tags.html?tag=%E5%BE%AE%E4%BF%A1">微信</a></li><li><a class="tag" href="../tags.html?tag=SQLCipher">SQLCipher</a></li><li><a class="tag" href="../tags.html?tag=macOS">macOS</a></li></ul>
+        <nav class="post-nav" aria-label="文章翻页">
+          <a class="is-next" href="index-first-filesystem-rag.html"><span class="post-nav-label">下一篇 →</span><span class="post-nav-title">为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</span></a>
+        </nav>
+      </footer>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="../index.html">首页</a></li>
+          <li><a href="../projects.html">项目清单</a></li>
+          <li><a href="../archive.html">文章归档</a></li>
+          <li><a href="../tags.html">标签索引</a></li>
+          <li><a href="../about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="../feed.xml">RSS 订阅</a></li>
+          <li><a href="../sitemap.xml">站点地图</a></li>
+          <li><a href="../robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="../about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
+  </div>
+</footer>
+
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="../assets/main.js" defer></script>
+</body>
+</html>

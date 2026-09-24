@@ -1,0 +1,9 @@
+# SupermanCantFly · robots.txt
+# 全站允许抓取；如需屏蔽某个目录，取消下面一行的注释。
+
+User-agent: *
+Allow: /
+Disallow: /404.html
+
+# 站点地图
+Sitemap: https://supermancantfly.cc/sitemap.xml

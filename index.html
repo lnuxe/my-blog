@@ -1,248 +1,452 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SupermanCantFly · 个人博客</title>
-<meta name="description" content="SupermanCantFly 的个人博客 —— 记录代码、自动化与生活的飞行日志" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦸</text></svg>" />
-<style>
-  :root {
-    --bg: #0d1117;
-    --bg-card: #161b22;
-    --border: #30363d;
-    --text: #e6edf3;
-    --text-dim: #8b949e;
-    --accent: #58a6ff;
-    --accent2: #7ee787;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-  }
-  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
-
-  /* ---- Hero ---- */
-  header.hero {
-    padding: 80px 0 60px;
-    text-align: center;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(88,166,255,.15), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 20%, rgba(126,231,135,.08), transparent);
-  }
-  .avatar {
-    width: 96px; height: 96px;
-    border-radius: 50%;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 52px;
-    background: linear-gradient(135deg, #1f6feb33, #7ee78733);
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-  }
-  h1 { font-size: 2.2rem; letter-spacing: 1px; }
-  h1 .cc { color: var(--accent); }
-  .tagline { color: var(--text-dim); margin-top: 10px; font-size: 1.05rem; }
-  .hero-badges { margin-top: 22px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .badge {
-    font-size: .8rem; padding: 4px 12px; border-radius: 999px;
-    border: 1px solid var(--border); color: var(--text-dim);
-    background: var(--bg-card);
-  }
-
-  /* ---- Nav ---- */
-  nav {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(13,17,23,.85); backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-  }
-  nav .container { display: flex; gap: 26px; height: 52px; align-items: center; }
-  nav a { color: var(--text-dim); text-decoration: none; font-size: .92rem; }
-  nav a:hover { color: var(--accent); }
-  nav .logo { font-family: var(--mono); font-weight: 700; color: var(--text); margin-right: auto; }
-
-  /* ---- Sections ---- */
-  section { padding: 56px 0; }
-  section + section { border-top: 1px solid var(--border); }
-  .sec-title {
-    font-size: 1.25rem; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
-  }
-  .sec-title::before { content: "//"; color: var(--accent); font-family: var(--mono); }
-
-  /* ---- Post cards ---- */
-  .post-list { display: grid; gap: 18px; }
-  .post {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 22px 24px;
-    transition: border-color .2s, transform .2s;
-  }
-  .post:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .post-meta { font-size: .8rem; color: var(--text-dim); font-family: var(--mono); display: flex; gap: 14px; flex-wrap: wrap; }
-  .post h3 { margin: 8px 0 6px; font-size: 1.12rem; }
-  .post h3 a { color: var(--text); text-decoration: none; }
-  .post h3 a:hover { color: var(--accent); }
-  .post p { color: var(--text-dim); font-size: .92rem; }
-  .tag { font-size: .72rem; padding: 2px 8px; border-radius: 4px; background: #1f6feb22; color: var(--accent); }
-
-  /* ---- About / Projects ---- */
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
-  .card {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 22px;
-  }
-  .card h4 { font-size: 1rem; margin-bottom: 10px; }
-  .card p { color: var(--text-dim); font-size: .9rem; }
-  .card .emoji { font-size: 1.6rem; display: block; margin-bottom: 10px; }
-
-  /* ---- Timeline ---- */
-  .timeline { border-left: 2px solid var(--border); padding-left: 22px; display: grid; gap: 18px; }
-  .tl-item { position: relative; }
-  .tl-item::before {
-    content: ""; position: absolute; left: -28px; top: 8px;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px var(--accent);
-  }
-  .tl-date { font-family: var(--mono); font-size: .78rem; color: var(--accent); }
-  .tl-item p { color: var(--text-dim); font-size: .92rem; }
-
-  /* ---- Footer ---- */
-  footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-dim); font-size: .85rem; }
-  footer a { color: var(--accent); text-decoration: none; }
-
-  @media (max-width: 640px) {
-    h1 { font-size: 1.7rem; }
-    header.hero { padding: 56px 0 40px; }
-  }
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SupermanCantFly · 浏览器自动化、AI Agent 与 Flutter 的技术笔记</title>
+<meta name="description" content="SupermanCantFly（GitHub @lnuxe）的个人技术博客：浏览器自动化、Playwright、RAG 与 AI Agent 技能包、Flutter 多端。全站静态、零外部依赖，文章全部来自真实跑过的项目。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="feed.xml">
+<link rel="stylesheet" href="assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
 <body>
 
-<nav>
-  <div class="container">
-    <span class="logo">supermancantfly<span style="color:var(--accent)">.cc</span></span>
-    <a href="#posts">文章</a>
-    <a href="#projects">项目</a>
-    <a href="#about">关于</a>
-  </div>
-</nav>
+<a class="skip-link" href="#main">跳到主要内容</a>
 
-<header class="hero">
-  <div class="container">
-    <div class="avatar">🦸</div>
-    <h1>Superman<span class="cc">CantFly</span></h1>
-    <p class="tagline">不会飞的超人 —— 靠代码着陆。记录浏览器自动化、全栈开发与折腾日志。</p>
-    <div class="hero-badges">
-      <span class="badge">🛠 浏览器自动化</span>
-      <span class="badge">⚡ NestJS / React</span>
-      <span class="badge">🤖 Playwright</span>
-      <span class="badge">☁️ 腾讯云 EdgeOne</span>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="index.html" aria-current="page">首页</a></li>
+        <li><a href="projects.html">项目</a></li>
+        <li><a href="archive.html">归档</a></li>
+        <li><a href="tags.html">标签</a></li>
+        <li><a href="about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
   </div>
 </header>
 
-<section id="posts">
-  <div class="container">
-    <h2 class="sec-title">最新文章</h2>
-    <div class="post-list">
-      <article class="post">
-        <div class="post-meta">
-          <span>2026-09-23</span><span>⏱ 6 min</span>
-          <span class="tag">部署</span><span class="tag">EdgeOne</span>
-        </div>
-        <h3><a href="#">把自动化后端搬上 Windows 服务器的踩坑实录</a></h3>
-        <p>Memurai 替代 Redis、PM2 守护 Node、Nginx 反代 Socket.IO —— 一台 2GB 内存的腾讯云轻量服务器如何稳定跑起 Playwright 自动化引擎。</p>
-      </article>
-      <article class="post">
-        <div class="post-meta">
-          <span>2026-09-10</span><span>⏱ 8 min</span>
-          <span class="tag">Playwright</span><span class="tag">自动化</span>
-        </div>
-        <h3><a href="#">用 Playwright + Jev 做语义选品：从截图到判断的五步流水线</a></h3>
-        <p>登录态 48 小时过期的扫码续期方案、产品池 5000 行阈值保护、语义判别失败时的规则兜底 —— 一个电商上架自动化引擎的设计细节。</p>
-      </article>
-      <article class="post">
-        <div class="post-meta">
-          <span>2026-08-30</span><span>⏱ 5 min</span>
-          <span class="tag">全栈</span><span class="tag">NestJS</span>
-        </div>
-        <h3><a href="#">BullMQ + Socket.IO：让任务进度实时推到前端面板</a></h3>
-        <p>任务队列、干运行模式、实时日志流 —— 管理端如何做到「点一下按钮，看着浏览器自己干活」。</p>
-      </article>
+<main id="main">
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">SupermanCantFly</h1>
+      <p class="hero-subtitle">全栈开发，重度浏览器自动化爱好者 —— 白天写业务，晚上写机器人替自己干活。相信「能自动化的绝不手动」。</p>
+      <ul class="badge-list">
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>浏览器自动化</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>Playwright</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>Flutter · Dart</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>uniapp</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>Node.js</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>Python</li>
+        <li class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>RAG · AI Agent</li>
+      </ul>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="archive.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 5h16v14H4zM4 9h16M9 9v10"/></svg>
+          浏览全部文章
+        </a>
+        <a class="btn" href="projects.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h6l2 2h10v10H3z"/></svg>
+          开源项目
+        </a>
+        <a class="btn" href="feed.xml">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 19h.01M5 12a7 7 0 0 1 7 7M5 5a14 14 0 0 1 14 14"/></svg>
+          RSS 订阅
+        </a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="projects">
-  <div class="container">
-    <h2 class="sec-title">开源 / 项目</h2>
-    <div class="grid2">
-      <div class="card">
-        <span class="emoji">🤖</span>
-        <h4>Starmerx 上架自动化</h4>
-        <p>NestJS + Playwright 五步引擎：登录 → 选品 → 加计划 → 校验 → 上架，Jev 语义判别兜底，BullMQ 队列驱动。</p>
+  <div class="container layout">
+    <div class="layout-main">
+      <div class="section-head">
+        <h2 class="section-title">最新文章</h2>
+        <a class="section-link" href="archive.html">查看归档 →</a>
       </div>
-      <div class="card">
-        <span class="emoji">🌐</span>
-        <h4>本博客</h4>
-        <p>部署在腾讯云 EdgeOne Makers，全球 CDN 加速 + 自动 HTTPS，绑定自定义域名 supermancantfly.cc。</p>
-      </div>
-      <div class="card">
-        <span class="emoji">📱</span>
-        <h4>Mini-apps 活动组件库</h4>
-        <p>电商营销活动页组件化开发，VIP 卡池、海外生活频道等 H5 活动的快速沉淀与复用。</p>
-      </div>
-      <div class="card">
-        <span class="emoji">🧪</span>
-        <h4>auto_test 回归框架</h4>
-        <p>页面回归 + 流程编排的自动化测试框架，产出健康报告，守护每一次发版。</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section id="about">
-  <div class="container">
-    <h2 class="sec-title">关于我</h2>
-    <div class="grid2">
-      <div class="card">
-        <span class="emoji">👨‍💻</span>
-        <h4>在做什么</h4>
-        <p>全栈开发，重度浏览器自动化爱好者。白天写业务，晚上写机器人替自己干活。相信「能自动化的绝不手动」。</p>
-      </div>
-      <div class="card">
-        <span class="emoji">📮</span>
-        <h4>找我</h4>
-        <p>欢迎通过 GitHub / 微信交流自动化、爬虫与部署运维话题。</p>
-      </div>
-    </div>
-    <div style="height:36px"></div>
-    <h2 class="sec-title">飞行日志</h2>
-    <div class="timeline">
-      <div class="tl-item">
-        <span class="tl-date">2026-09</span>
-        <p>博客上线 supermancantfly.cc，迁移到腾讯云 EdgeOne Makers。</p>
-      </div>
-      <div class="tl-item">
-        <span class="tl-date">2026-08</span>
-        <p>上架自动化引擎重构完成，五步流水线稳定运行。</p>
-      </div>
-      <div class="tl-item">
-        <span class="tl-date">2026-06</span>
-        <p>开始沉淀 Mini-apps 活动组件库，H5 活动开发提效 50%。</p>
-      </div>
-    </div>
-  </div>
-</section>
+      <form class="filter-bar" role="search" onsubmit="return false;">
+        <label class="visually-hidden" for="post-search">搜索文章标题、标签或摘要</label>
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="search-input" id="post-search" type="search" placeholder="搜索文章…（按 / 快速聚焦）" autocomplete="off" spellcheck="false">
+          <button class="search-clear" id="search-clear" type="button" aria-label="清除搜索内容">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+        <p class="filter-status" id="filter-status" role="status" aria-live="polite">共 6 篇文章</p>
+        <div class="tag-cloud" style="margin-top:.75rem;">
+          <button class="tag tag-filter" type="button" data-tag-filter="浏览器自动化" aria-pressed="false">浏览器自动化<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="Playwright" aria-pressed="false">Playwright<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="RAG" aria-pressed="false">RAG<span class="tag-count">2</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="Agent Skill" aria-pressed="false">Agent Skill<span class="tag-count">2</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="Flutter" aria-pressed="false">Flutter<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="逆向" aria-pressed="false">逆向<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="前端" aria-pressed="false">前端<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="客服" aria-pressed="false">客服<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="PixiJS" aria-pressed="false">PixiJS<span class="tag-count">1</span></button>
+          <button class="tag tag-filter" type="button" data-tag-filter="工程化" aria-pressed="false">工程化<span class="tag-count">1</span></button>
+        </div>
+      </form>
 
-<footer>
+      <ul class="post-list" id="post-list">
+        <li class="post-card" data-post data-title="把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出" data-date="2026-09-28" data-tags="逆向, 微信, SQLCipher, macOS" data-excerpt="微信 4.x 把聊天记录放进了加密的 WCDB 库。这篇文章拆开 pickled-fish 的导出管线：密钥从进程内存里怎么取、passphrase 为什么要过一遍 PBKDF2、db_storage 里到底有什么，以及为什么要导出成 chat.txt 才谈得上「看懂」。" >
+          <h3 class="post-card-title"><a href="posts/wechat-4x-db-export.html">把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-09-28">2026 年 9 月 28 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>逆向工程</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3600 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 9 分钟</span>
+          </p>
+          <p class="post-card-excerpt">微信 4.x 把聊天记录放进了加密的 WCDB 库。这篇文章拆开 pickled-fish 的导出管线：密钥从进程内存里怎么取、passphrase 为什么要过一遍 PBKDF2、db_storage 里到底有什么，以及为什么要导出成 chat.txt 才谈得上「看懂」。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=%E9%80%86%E5%90%91">逆向</a></li><li><a class="tag" href="tags.html?tag=%E5%BE%AE%E4%BF%A1">微信</a></li><li><a class="tag" href="tags.html?tag=SQLCipher">SQLCipher</a></li><li><a class="tag" href="tags.html?tag=macOS">macOS</a></li></ul>
+            <a class="read-more" href="posts/wechat-4x-db-export.html">阅读全文<span class="visually-hidden">：把微信 4.x 的聊天记录导出来</span></a>
+          </div>
+        </li>
+        <li class="post-card" data-post data-title="为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由" data-date="2026-09-21" data-tags="RAG, Agent Skill, 知识库, 检索" data-excerpt="几十上百个 Markdown 的个人知识库，上向量库往往是成本大于收益。pickled-fish 的 kb-rag 用 REGISTRY → PACK.md → rg → Read 四步做检索，同轮最多深读 2 个 pack 并强制标注 packs_used。">
+          <h3 class="post-card-title"><a href="posts/index-first-filesystem-rag.html">为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-09-21">2026 年 9 月 21 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>AI 知识库</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3400 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 8 分钟</span>
+          </p>
+          <p class="post-card-excerpt">几十上百个 Markdown 的个人知识库，上向量库往往是成本大于收益。pickled-fish 的 kb-rag 用 REGISTRY → PACK.md → rg → Read 四步做检索，同轮最多深读 2 个 pack 并强制标注 packs_used。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="tags.html?tag=Agent%20Skill">Agent Skill</a></li><li><a class="tag" href="tags.html?tag=%E7%9F%A5%E8%AF%86%E5%BA%93">知识库</a></li><li><a class="tag" href="tags.html?tag=%E6%A3%80%E7%B4%A2">检索</a></li></ul>
+            <a class="read-more" href="posts/index-first-filesystem-rag.html">阅读全文<span class="visually-hidden">：为什么个人知识库不用向量库</span></a>
+          </div>
+        </li>
+        <li class="post-card" data-post data-title="确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底" data-date="2026-09-14" data-tags="Playwright, 浏览器自动化, Python, 工程化" data-excerpt="上架自动化一旦「失控」，损失是真金白银。starmerx_listing 把规则校验全部写成纯代码，LLM 只在规则层失败时兜底；利润试算用有界二分防死循环，默认干运行，每一步操作都用 DOM 状态验收。">
+          <h3 class="post-card-title"><a href="posts/deterministic-browser-automation.html">确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-09-14">2026 年 9 月 14 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>浏览器自动化</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3500 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 9 分钟</span>
+          </p>
+          <p class="post-card-excerpt">上架自动化一旦「失控」，损失是真金白银。starmerx_listing 把规则校验全部写成纯代码，LLM 只在规则层失败时兜底；利润试算用有界二分防死循环，默认干运行，每一步操作都用 DOM 状态验收。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=Playwright">Playwright</a></li><li><a class="tag" href="tags.html?tag=%E6%B5%8F%E8%A7%88%E5%99%A8%E8%87%AA%E5%8A%A8%E5%8C%96">浏览器自动化</a></li><li><a class="tag" href="tags.html?tag=Python">Python</a></li><li><a class="tag" href="tags.html?tag=%E5%B7%A5%E7%A8%8B%E5%8C%96">工程化</a></li></ul>
+            <a class="read-more" href="posts/deterministic-browser-automation.html">阅读全文<span class="visually-hidden">：确定性优先的浏览器自动化</span></a>
+          </div>
+        </li>
+        <li class="post-card" data-post data-title="用 RAG 做电商客服：怎么用知识库边界把售后强制转人工" data-date="2026-09-07" data-tags="RAG, AI Agent, Dify, 客服" data-excerpt="客服 AI 最大的风险不是答不上来，而是答得太顺口——在退款、赔偿上做出无法兑现的承诺。rag-cs-bot 的做法是：知识库里根本没有售后内容，从机制上强制转人工。">
+          <h3 class="post-card-title"><a href="posts/rag-cs-bot-manual-handoff.html">用 RAG 做电商客服：怎么用知识库边界把售后强制转人工</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-09-07">2026 年 9 月 7 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>AI 客服</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3200 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 8 分钟</span>
+          </p>
+          <p class="post-card-excerpt">客服 AI 最大的风险不是答不上来，而是答得太顺口——在退款、赔偿上做出无法兑现的承诺。rag-cs-bot 的做法是：知识库里根本没有售后内容，从机制上强制转人工。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="tags.html?tag=AI%20Agent">AI Agent</a></li><li><a class="tag" href="tags.html?tag=Dify">Dify</a></li><li><a class="tag" href="tags.html?tag=%E5%AE%A2%E6%9C%8D">客服</a></li></ul>
+            <a class="read-more" href="posts/rag-cs-bot-manual-handoff.html">阅读全文<span class="visually-hidden">：用 RAG 做电商客服</span></a>
+          </div>
+        </li>
+        <li class="post-card" data-post data-title="先对齐坑，再写修复：一个 Flutter 缺陷分诊 Skill 的设计" data-date="2026-08-31" data-tags="Flutter, Agent Skill, 缺陷分诊, Cursor" data-excerpt="Flutter Web 与多宿主 WebView 的缺陷，很少是「写错一行 CSS」。flutter-defect-triage 强制 Agent 在动代码前完成四件事：选业务包、扫坑、坑点对齐、窄修复。">
+          <h3 class="post-card-title"><a href="posts/flutter-defect-triage-skill.html">先对齐坑，再写修复：一个 Flutter 缺陷分诊 Skill 的设计</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-08-31">2026 年 8 月 31 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>Agent Skill</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3300 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 8 分钟</span>
+          </p>
+          <p class="post-card-excerpt">Flutter Web 与多宿主 WebView 的缺陷，很少是「写错一行 CSS」。flutter-defect-triage 强制 Agent 在动代码前完成四件事：选业务包、扫坑、坑点对齐、窄修复。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=Flutter">Flutter</a></li><li><a class="tag" href="tags.html?tag=Agent%20Skill">Agent Skill</a></li><li><a class="tag" href="tags.html?tag=%E7%BC%BA%E9%99%B7%E5%88%86%E8%AF%8A">缺陷分诊</a></li><li><a class="tag" href="tags.html?tag=Cursor">Cursor</a></li></ul>
+            <a class="read-more" href="posts/flutter-defect-triage-skill.html">阅读全文<span class="visually-hidden">：先对齐坑，再写修复</span></a>
+          </div>
+        </li>
+        <li class="post-card" data-post data-title="用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器" data-date="2026-08-24" data-tags="前端, PixiJS, Three.js, 游戏" data-excerpt="无后端、无框架、无运行时依赖，构建产物直接静态部署。preaim-rush-peek 只练一件事：击杀、转火、再击杀。2D/3D 双模式、参数化准星、分轨音效与缺省回退，是这篇文章要讲的全部工程细节。">
+          <h3 class="post-card-title"><a href="posts/preaim-rush-peek.html">用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器</a></h3>
+          <p class="post-meta">
+            <time datetime="2026-08-24">2026 年 8 月 24 日</time>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>前端实战</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>约 3400 字</span>
+            <span class="dot" aria-hidden="true">·</span>
+            <span>阅读约 8 分钟</span>
+          </p>
+          <p class="post-card-excerpt">无后端、无框架、无运行时依赖，构建产物直接静态部署。preaim-rush-peek 只练一件事：击杀、转火、再击杀。2D/3D 双模式、参数化准星、分轨音效与缺省回退，是这篇文章要讲的全部工程细节。</p>
+          <div class="post-card-foot">
+            <ul class="tag-list"><li><a class="tag" href="tags.html?tag=%E5%89%8D%E7%AB%AF">前端</a></li><li><a class="tag" href="tags.html?tag=PixiJS">PixiJS</a></li><li><a class="tag" href="tags.html?tag=Three.js">Three.js</a></li><li><a class="tag" href="tags.html?tag=%E6%B8%B8%E6%88%8F">游戏</a></li></ul>
+            <a class="read-more" href="posts/preaim-rush-peek.html">阅读全文<span class="visually-hidden">：用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器</span></a>
+          </div>
+        </li>
+      </ul>
+
+      <div class="no-results" id="no-results" role="status">
+        <strong>没有找到匹配的文章</strong>
+        <p>试试更短的关键词，或者点击标签进行筛选。</p>
+      </div>
+    </div>
+
+    <aside class="layout-side" aria-label="站点信息侧边栏">
+      <section class="sidebar-card author-box">
+        <svg class="author-avatar" viewBox="0 0 96 96" width="72" height="72" role="img" aria-label="站长 SupermanCantFly 的头像">
+          <defs><linearGradient id="avatarGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+          <circle cx="48" cy="48" r="48" fill="url(#avatarGrad)"/>
+          <circle cx="48" cy="38" r="15" fill="#ffffff" opacity="0.92"/>
+          <path d="M18 88c4-17 15-26 30-26s26 9 30 26z" fill="#ffffff" opacity="0.92"/>
+          <path d="M48 62V44M40 52l8-8 8 8" fill="none" stroke="#2b6cb0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2 class="author-name">SupermanCantFly</h2>
+        <p class="author-role">全栈开发 / 浏览器自动化</p>
+        <p class="author-bio">白天写业务，晚上写机器人替自己干活。这里是折腾过程里留下的技术笔记：自动化、Agent 技能包、RAG，以及踩过的坑。</p>
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-value">6</span><span class="stat-label">篇文章</span></div>
+          <div class="stat"><span class="stat-value">22</span><span class="stat-label">个标签</span></div>
+          <div class="stat"><span class="stat-value">13</span><span class="stat-label">个开源项目</span></div>
+        </div>
+      </section>
+
+      <section class="sidebar-card">
+        <h2 class="sidebar-title">开源项目</h2>
+        <ul class="sidebar-list">
+          <li><a href="projects.html">项目清单（13 个仓库）</a><span class="sidebar-date">浏览器自动化 · Flutter · Agent 技能</span></li>
+          <li><a href="https://github.com/lnuxe" class="project-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>github.com/lnuxe</a><span class="sidebar-date">19 个公开仓库</span></li>
+        </ul>
+      </section>
+
+      <section class="sidebar-card">
+        <h2 class="sidebar-title">标签</h2>
+        <ul class="tag-list">
+          <li><a class="tag" href="tags.html?tag=RAG">RAG<span class="tag-count">2</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Agent%20Skill">Agent Skill<span class="tag-count">2</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E9%80%86%E5%90%91">逆向<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E5%BE%AE%E4%BF%A1">微信<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=SQLCipher">SQLCipher<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=macOS">macOS<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E7%9F%A5%E8%AF%86%E5%BA%93">知识库<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E6%A3%80%E7%B4%A2">检索<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Playwright">Playwright<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E6%B5%8F%E8%A7%88%E5%99%A8%E8%87%AA%E5%8A%A8%E5%8C%96">浏览器自动化<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Python">Python<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E5%B7%A5%E7%A8%8B%E5%8C%96">工程化<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=AI%20Agent">AI Agent<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Dify">Dify<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E5%AE%A2%E6%9C%8D">客服<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Flutter">Flutter<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E7%BC%BA%E9%99%B7%E5%88%86%E8%AF%8A">缺陷分诊<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Cursor">Cursor<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E5%89%8D%E7%AB%AF">前端<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=PixiJS">PixiJS<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=Three.js">Three.js<span class="tag-count">1</span></a></li>
+          <li><a class="tag" href="tags.html?tag=%E6%B8%B8%E6%88%8F">游戏<span class="tag-count">1</span></a></li>
+        </ul>
+      </section>
+
+      <section class="sidebar-card">
+        <h2 class="sidebar-title">关于本站</h2>
+        <p class="author-bio" style="margin-bottom:0">全站由纯 HTML、CSS 与原生 JavaScript 手工构建，没有构建步骤、没有外部依赖，双击即可离线阅读。文章都来自真实跑过的项目，不是「三分钟学会某某框架」。</p>
+      </section>
+    </aside>
+  </div>
+
+  <section class="container" style="padding-bottom:4rem;" aria-labelledby="featured-projects">
+    <div class="section-head">
+      <h2 class="section-title" id="featured-projects">精选项目</h2>
+      <a class="section-link" href="projects.html">查看全部项目 →</a>
+    </div>
+    <ul class="project-grid">
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/starmerx_listing">starmerx_listing</a></h3>
+          <span class="lang-tag">Python</span>
+        </div>
+        <p class="project-desc">基于 Playwright 的确定性浏览器自动化，跑通「产品池 → 加入上架计划 → 图片/价格校验 → 批量上架」全流程。</p>
+        <ul class="project-points">
+          <li>Python 3.13 + Playwright 1.62 做确定性 DOM 操作，通义千问 Qwen 仅在规则层失败时兜底</li>
+          <li>钉钉扫码登录 + storageState 持久化，登录态约 2 天过期</li>
+          <li>利润试算引擎用有界二分，最多 20 次迭代，未命中即报「需人工介入」</li>
+          <li>默认干运行，加 <code>--no-dry-run</code> 才真正上架</li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/starmerx_listing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+        </div>
+      </li>
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/rag-cs-bot">rag-cs-bot</a></h3>
+          <span class="lang-tag">TypeScript</span>
+        </div>
+        <p class="project-desc">基于 Dify RAG 的电商客服自动化 Demo：售前 AI 自动回复，售后从机制上强制转人工。</p>
+        <ul class="project-points">
+          <li>本地 Dify + RAG 知识库，Flask 前端代理转发 API 并剥离 DeepSeek 思考过程</li>
+          <li>UI-TARS 浏览器自动化读取买家消息，调 Dify 生成回答后回填</li>
+          <li>知识库只放售前内容，售后不喂给 AI</li>
+          <li>面向每天 99+ 条消息、受 TikTok 24h / 48h 考核约束的店铺场景</li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/rag-cs-bot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+        </div>
+      </li>
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/pickled-fish">pickled-fish</a></h3>
+          <span class="lang-tag">HTML</span>
+        </div>
+        <p class="project-desc">泡菜鱼：跑在 Cursor Agent 上的技能包 —— 微信本机聊天导出、整段聊天分析、文件系统 RAG。</p>
+        <ul class="project-points">
+          <li>面向 WeChat 4.1.10+，LLDB 抓 passphrase → PBKDF2 解密 <code>db_storage/*.db</code></li>
+          <li><code>wxecho export "昵称"</code> 写出 <code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code></li>
+          <li>Index-first 文件系统 RAG：REGISTRY → PACK.md → rg → Read</li>
+          <li>同轮最多深读 2 个 pack 并强制标注 <code>packs_used</code></li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/pickled-fish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+        </div>
+      </li>
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/flutter-defect-triage">flutter-defect-triage</a></h3>
+          <span class="lang-tag">Shell</span>
+        </div>
+        <p class="project-desc">Cursor / Claude Code 用的缺陷分诊 skill，面向 Flutter Web、App WebView、小程序 H5、多宿主 JSBridge 等高坑密度场景。</p>
+        <ul class="project-points">
+          <li>核心理念：先对齐坑，再写修复</li>
+          <li>动代码前强制四件事：选业务包、扫坑、坑点对齐、窄修复</li>
+          <li>全局 skill 只放流程与跨仓 Case，项目 overlay 放本仓路径与协议</li>
+          <li>合入后必须回填 <code>cases.md</code> 与 <code>cases-rag-index.md</code></li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/flutter-defect-triage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+        </div>
+      </li>
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/preaim-rush-peek">preaim-rush-peek</a></h3>
+          <span class="lang-tag">JavaScript</span>
+        </div>
+        <p class="project-desc">无畏契约风格的瞄准训练器，专注「击杀 → 转火 → 再击杀」的 rush 抗压与快速补枪训练。</p>
+        <ul class="project-points">
+          <li>Vite 5 + PixiJS 8 + Three.js，无后端、无框架、无运行时依赖</li>
+          <li>2D / 3D 双模式（<code>?mode=3d</code>），三维模式走射线命中判定</li>
+          <li>29 名特工头像随机轮换，参数化准星支持导入职业准星代码</li>
+          <li>分轨音效，MP3 缺省自动回退合成音效</li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/preaim-rush-peek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+        </div>
+      </li>
+      <li class="project-card">
+        <div class="project-head">
+          <h3 class="project-name"><a href="https://github.com/lnuxe/ldm">ldm / wechat-mcp</a></h3>
+          <span class="lang-tag">JavaScript</span>
+        </div>
+        <p class="project-desc">macOS 上通过 MCP 操作微信桌面版的示例服务器：发送消息、读取当前聊天窗口可见文本。</p>
+        <ul class="project-points">
+          <li><code>send-text-message</code>：激活 Mac 微信、搜索联系人或群聊并发送文本</li>
+          <li><code>get-current-chat-text</code>：读取当前聊天窗口里可见的文本内容</li>
+          <li>底层 AppleScript + <code>osascript</code>，封装成 MCP 工具供 Cursor / Claude Desktop 调用</li>
+          <li>附 Vercel + 公众号服务器配置的完整接入说明</li>
+        </ul>
+        <div class="project-foot">
+          <a class="project-link" href="https://github.com/lnuxe/ldm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+          <a class="project-link" href="https://ldm-kohl.vercel.app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></svg>在线 Demo</a>
+        </div>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<footer class="site-footer">
   <div class="container">
-    <p>© 2026 SupermanCantFly · Powered by <a href="https://cloud.tencent.com/product/teo" target="_blank" rel="noopener">腾讯云 EdgeOne</a></p>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="index.html">首页</a></li>
+          <li><a href="projects.html">项目清单</a></li>
+          <li><a href="archive.html">文章归档</a></li>
+          <li><a href="tags.html">标签索引</a></li>
+          <li><a href="about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="feed.xml">RSS 订阅</a></li>
+          <li><a href="sitemap.xml">站点地图</a></li>
+          <li><a href="robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
   </div>
 </footer>
 
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="assets/main.js" defer></script>
 </body>
 </html>
