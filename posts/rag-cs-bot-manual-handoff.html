@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 RAG 做电商客服：怎么用知识库边界把售后强制转人工 · SupermanCantFly</title>
+<meta name="description" content="rag-cs-bot 用「知识库只放售前内容」从机制上强制售后转人工，附 Dify 全链路、clean_answer() 思考剥离与索引连接池踩坑记录。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="../feed.xml">
+<link rel="stylesheet" href="../assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+<div class="progress-bar" id="progress-bar" role="presentation"></div>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="../index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="../index.html">首页</a></li>
+        <li><a href="../projects.html">项目</a></li>
+        <li><a href="../archive.html">归档</a></li>
+        <li><a href="../tags.html">标签</a></li>
+        <li><a href="../about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="article-wrap">
+    <article class="prose">
+      <header class="post-header">
+        <p class="post-eyebrow">AI 客服</p>
+        <h1 class="post-title">用 RAG 做电商客服：怎么用知识库边界把售后强制转人工</h1>
+        <p class="post-meta">
+          <time datetime="2026-09-07">2026 年 9 月 7 日</time>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>约 3200 字</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>阅读约 8 分钟</span>
+        </p>
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="../tags.html?tag=AI%20Agent">AI Agent</a></li><li><a class="tag" href="../tags.html?tag=Dify">Dify</a></li><li><a class="tag" href="../tags.html?tag=%E5%AE%A2%E6%9C%8D">客服</a></li></ul>
+      </header>
+
+      <p class="lede">客服 AI 最危险的地方，不是它答不上来，而是它答得太顺口。一个「已读乱回」的机器人最多让人哭笑不得；一个在退款、赔偿、时效承诺上张口就来的机器人，会直接把公司拖进说不清的纠纷里。<code>rag-cs-bot</code> 这个 Demo 里最值得拿出来讲的设计，不是它怎么把 AI 接进去，而是它<strong>怎么用知识库的边界，从机制上把售后挡在 AI 之外</strong>。</p>
+
+      <nav class="toc" aria-label="本文目录">
+        <ol>
+          <li><a href="#background">背景：99+ 条消息，和 24h / 48h 的考核</a></li>
+          <li><a href="#arch">全链路长什么样</a></li>
+          <li><a href="#boundary">核心设计：知识库只放售前</a></li>
+          <li><a href="#prompt">为什么不能靠提示词阻止模型谈退款</a></li>
+          <li><a href="#chatflow">意图分流：售前走 AI，售后转人工</a></li>
+          <li><a href="#clean">剥掉思考过程：clean_answer()</a></li>
+          <li><a href="#tars">浏览器自动化那一环</a></li>
+          <li><a href="#index">索引卡住的坑：连接池耗尽</a></li>
+          <li><a href="#ops">跑起来需要什么</a></li>
+          <li><a href="#limit">这套方案的边界</a></li>
+          <li><a href="#summary">小结</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="background">背景：99+ 条消息，和 24h / 48h 的考核</h2>
+
+      <p>先摆事实。这个 Demo 的起点是真实的运营压力：店铺客服<strong>每天 99+ 条客户消息</strong>，而平台的回复率考核挂在 <strong>24h / 48h</strong> 这两个时限上。消息量和时限一叠加，客服工作的性质就变了——它不再是「把问题解决掉」，而首先变成「在时限内把每一条都接住」。</p>
+
+      <p>这类场景恰好是 LLM 擅长的：客户问的绝大多数问题是重复的、有标准答案的。项目把这些问题拆成两类：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">类型</th><th scope="col">典型问题</th><th scope="col">处理方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>售前</td><td>产品、发货、物流、价格、尺码、咨询</td><td>AI 基于知识库自动回复</td></tr>
+            <tr><td>售后</td><td>退换、退款、投诉、赔偿</td><td>转人工处理，<strong>不喂给 AI</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="arch">全链路长什么样</h2>
+
+      <p>仓库里已经跑通的链路是这样的：本地 Dify + RAG 知识库 → 客服聊天前端（Flask 后端代理）→ 浏览器自动化（UI-TARS）读取消息 → 调 Dify API 自动回复 → 回填。画成图就是：</p>
+
+      <div class="code-block"><pre><code>TikTok Shop 买家消息
+        │  (浏览器自动化读取)
+        ▼
+   UI-TARS / cs_web ──► Dify Chatflow API
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+               意图识别            知识库检索(RAG)
+               ├─ 售后 → 转人工      └─ 售前 → LLM 生成回答
+               └─ 售前 → 知识库回答
+                              │
+                              ▼
+                       回复买家消息</code></pre></div>
+
+      <p>对应到仓库目录：</p>
+
+      <div class="code-block"><pre><code>rag-cs-bot/
+├── README.md                 # 项目说明
+├── 售前AI客服搭建操作指南.md   # Dify 侧完整搭建步骤
+├── cs_web/                   # 客服聊天前端 + 后端代理
+│   ├── app.py                # Flask 后端：转发到 Dify API + 去 DeepSeek 思考
+│   └── static/index.html     # 聊天界面
+├── ui_tars_demo/             # UI-TARS 浏览器自动化 Demo
+│   ├── tars_demo.py          # 读取浏览器消息框 → 调 Dify API → 回填回复
+│   └── demo_msg.html         # 模拟消息框页面
+└── dify/                     # Dify 开源平台源码（langgenius/dify，已去除运行时产物）</code></pre></div>
+
+      <h2 id="boundary">核心设计：知识库只放售前</h2>
+
+      <p>整篇文章如果只留一段，应该是这一段：</p>
+
+      <blockquote>
+        <p><strong>知识库只放售前内容，售后内容不喂给 AI，从而强制售后转人工。</strong></p>
+      </blockquote>
+
+      <p>这句话是 README 里原样写着的「关键设计」。它的巧妙之处在于，它把一条业务规则（售后必须人工处理）翻译成了一条<strong>数据规则</strong>（知识库里没有售后内容）。而这个翻译带来三个连锁效果：</p>
+
+      <ul>
+        <li><strong>模型没有可引用的依据。</strong>RAG 的输出天然被检索结果约束；知识库里没有退款政策，模型就检索不到任何可以拿来承诺的条款。</li>
+        <li><strong>失败是可见的。</strong>如果 AI 面对售后问题还硬答，说明意图分流那一层出了问题——这是一个可以被发现、被修复的 bug，而不是一个藏在话术里的隐患。</li>
+        <li><strong>维护成本更低。</strong>售后政策会变，而且经常涉及金额与责任认定。把它们排除在知识库之外，等于把「谁来更新知识库」这个问题也一并简化了。</li>
+      </ul>
+
+      <h2 id="prompt">为什么不能靠提示词阻止模型谈退款</h2>
+
+      <p>很自然会想到另一种做法：知识库照放，然后在提示词里写一句「遇到退款问题请转人工」。这条路在 Demo 里能跑，在生产里靠不住，理由有三层：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">做法</th><th scope="col">失效方式</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>提示词里禁止谈退款</td><td>用户的问法千变万化，「这个钱什么时候能到我账上」可能就不会命中这条禁令；而且上下文一长，指令的约束力会衰减</td></tr>
+            <tr><td>知识库里放售后条款</td><td>一旦被检索到，模型就会引用它，并且倾向于给出比条款更「热情」的承诺</td></tr>
+            <tr><td>让模型自己判断该不该转人工</td><td>把「转不转人工」变成一个不确定的决策，而这恰恰是最不该不确定的地方</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>关键区别在于：<strong>提示词是「建议」，知识库内容是「证据」</strong>。模型可以无视建议，但它没法凭空造出一份不存在的证据（造出来就是幻觉，而幻觉是能被检测和拦截的）。所以把约束放在数据层，比放在提示词层可靠得多——这就是「从机制上强制转人工」的含义。</p>
+
+      <h2 id="chatflow">意图分流：售前走 AI，售后转人工</h2>
+
+      <p>分流发生在 Dify 侧。README 的操作指南里，这一步被定义为一个「售前 AI / 售后人工」的 Chatflow 工作流：先做意图识别，然后按结果分叉——售前走向知识库检索，售后直接转人工。</p>
+
+      <p>这一层与知识库边界是<strong>两道独立的闸门</strong>，而不是一道：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">闸门</th><th scope="col">位置</th><th scope="col">失效时的表现</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>意图识别分流</td><td>Chatflow 的判断节点</td><td>问题被送进售前分支，但检索不到内容</td></tr>
+            <tr><td>知识库边界</td><td>语料本身</td><td>即使被送进售前分支，也拿不到可承诺的条款</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>两道闸门同时存在，意味着任何一次售后相关的问询都要连闯两关才会变成一句「AI 承诺」。这种冗余在客服场景里是值得的：<strong>省下的每一次误答，都比多花的那点算力贵。</strong></p>
+
+      <h2 id="clean">剥掉思考过程：clean_answer()</h2>
+
+      <p>链路里有一个很接地气的问题：接进来的推理模型（DeepSeek 一类）会把思考过程一起返回，格式通常是 <code>...&lt;/think&gt;回答</code> 或 <code>...&lt;/thinking&gt;回答</code>。如果不处理，客户看到的回复里会带着一大段自言自语。</p>
+
+      <p><code>cs_web/app.py</code> 里的 <code>clean_answer()</code> 用一个正则把这段剥掉，只保留最终回复，两种格式都覆盖。这一环之所以必须由后端代理来做，而不是在前端过滤，是因为代理层是链路上唯一一个「所有回复都必须经过」的位置：</p>
+
+      <div class="code-block"><pre><code>买家消息 → cs_web/app.py（Flask 代理）
+              ├── 转发到 Dify API
+              ├── clean_answer()：剥离思考过程
+              └── 返回干净回复</code></pre></div>
+
+      <p>把清洗放在必经之路上，而不是放在每个调用点，是这类系统能长期维护的关键。否则每加一个新的入口，都要重新记得「这里也要去一次思考过程」。</p>
+
+      <h2 id="tars">浏览器自动化那一环</h2>
+
+      <p><code>ui_tars_demo/tars_demo.py</code> 负责把 AI 的回复送回给买家：读取浏览器消息框中的买家消息 → 调 Dify API 生成回答 → 回填到消息框。仓库里还带了一个 <code>demo_msg.html</code> 作为模拟消息框页面，方便在没有真实店铺的情况下把这一环跑通。</p>
+
+      <p>「模拟页面」这个细节值得单独提一句：它让整条链路可以被分段验证——前端、代理、Dify 工作流、浏览器自动化，每一段都能单独跑。相比之下，一上来就对着真实店铺联调，出问题时你连是哪一段坏了都分不清。</p>
+
+      <blockquote>
+        <p>README 的声明里写得很清楚：本项目是技术 Demo，生产环境接入 TikTok 需使用官方开放平台 API 或桥接服务。浏览器自动化适合验证链路，不适合当作长期的生产接入方式。</p>
+      </blockquote>
+
+      <h2 id="index">索引卡住的坑：连接池耗尽</h2>
+
+      <p>仓库专门留了一节「关键踩坑经验」给二次开发的人，其中一条很有代表性：<strong>Dify 知识库索引会因 SQLAlchemy 连接池耗尽而停滞，需要控制并发、串行处理文档。</strong></p>
+
+      <p>这类问题的麻烦之处在于症状：任务不报错，只是一直停在「索引中」。你以为它在慢慢跑，其实它已经卡死了。所以处理方式不是「多等等」，而是从提交侧就不给连接池压力：</p>
+
+      <ul>
+        <li><strong>控制并发。</strong>文档不要一次性全部丢进去。</li>
+        <li><strong>串行处理。</strong>一份处理完再提交下一份，牺牲速度换稳定性。</li>
+        <li><strong>把「建知识库」当成有状态的运维动作</strong>，而不是一次性的初始化脚本——它会失败，失败后要能接着跑。</li>
+      </ul>
+
+      <p>另外两条踩坑经验也一并记在这里：一是思考过程的剥离（见上一节），二是「知识库只放售前」这条核心手段本身。三条经验合起来看，恰好覆盖了这类项目最容易出问题的三个位置：模型输出、基础设施、业务边界。</p>
+
+      <h2 id="ops">跑起来需要什么</h2>
+
+      <p>本地起 Dify 用的是官方 compose：</p>
+
+      <div class="code-block"><pre><code>cd dify/docker
+docker compose up -d
+# 访问 http://localhost:80，完成管理员初始化</code></pre></div>
+
+      <p>然后按操作指南接入模型（DeepSeek / 通义千问 / 智谱）、建售前知识库、搭「售前 AI / 售后人工」分流的 Chatflow。前端代理需要两个环境变量：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">变量</th><th scope="col">作用</th><th scope="col">默认值</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>DIFY_BASE_URL</code></td><td>Dify API 地址</td><td><code>http://localhost/v1</code></td></tr>
+            <tr><td><code>DIFY_API_KEY</code></td><td>Chatflow 应用 API Key</td><td>需要自己配置</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block"><pre><code>cd cs_web
+pip install -r requirements.txt   # flask, requests
+python3 app.py
+# 访问 http://localhost:8000</code></pre></div>
+
+      <p>仓库里的 <code>dify/</code> 目录是 <a href="https://github.com/langgenius/dify">langgenius/dify</a> 的开源平台源码（保留其原始 LICENSE），已经去掉了运行时产物，用于本地私有化部署。客服 Demo 部分与 Dify 源码各自遵循原项目的许可。</p>
+
+      <h2 id="limit">这套方案的边界</h2>
+
+      <p>把它当 Demo 看，它解决了一个真问题；把它当生产方案看，还有几件事要先想清楚：</p>
+
+      <ul>
+        <li><strong>接入方式。</strong>浏览器自动化能验证链路，但生产环境应当走官方开放平台 API 或桥接服务。</li>
+        <li><strong>转人工之后的闭环。</strong>「转人工」不是一个句号，人工接手的时效、话术、记录都需要另外一套流程来兜。</li>
+        <li><strong>知识库的更新责任。</strong>价格、尺码、物流时效都会变，谁在什么时候更新知识库，决定了这套系统的保质期。</li>
+        <li><strong>考核指标的口径。</strong>24h / 48h 回复率算的是「有没有回」，而不是「回得对不对」——用自动化满足前者的时候，别把后者丢掉。</li>
+      </ul>
+
+      <h2 id="summary">小结</h2>
+
+      <p><code>rag-cs-bot</code> 最值得借鉴的，不是「用 Dify 接了 RAG」这个动作，而是它对<strong>能力边界</strong>的处理方式：不是告诉模型「这件事你不能做」，而是让它在数据里根本找不到做这件事的材料。前者是请求，后者是机制。</p>
+
+      <p>这个思路可以直接迁移到别的场景：凡是「一旦答错就不可挽回」的问题类型，都不该交给模型自由发挥，而应该在检索层就把它排除掉。换句话说，<strong>限制一个 AI 系统最可靠的方式，是控制它能看到什么。</strong></p>
+
+      <footer class="post-footer">
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="../tags.html?tag=AI%20Agent">AI Agent</a></li><li><a class="tag" href="../tags.html?tag=Dify">Dify</a></li><li><a class="tag" href="../tags.html?tag=%E5%AE%A2%E6%9C%8D">客服</a></li></ul>
+        <nav class="post-nav" aria-label="文章翻页">
+          <a class="post-nav-prev" href="deterministic-browser-automation.html"><span class="post-nav-label">← 上一篇</span><span class="post-nav-title">确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</span></a>
+          <a class="is-next" href="flutter-defect-triage-skill.html"><span class="post-nav-label">下一篇 →</span><span class="post-nav-title">先对齐坑，再写修复：一个 Flutter 缺陷分诊 Skill 的设计</span></a>
+        </nav>
+      </footer>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="../index.html">首页</a></li>
+          <li><a href="../projects.html">项目清单</a></li>
+          <li><a href="../archive.html">文章归档</a></li>
+          <li><a href="../tags.html">标签索引</a></li>
+          <li><a href="../about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="../feed.xml">RSS 订阅</a></li>
+          <li><a href="../sitemap.xml">站点地图</a></li>
+          <li><a href="../robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="../about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
+  </div>
+</footer>
+
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="../assets/main.js" defer></script>
+</body>
+</html>

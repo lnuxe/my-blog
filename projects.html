@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>项目 · SupermanCantFly</title>
+<meta name="description" content="SupermanCantFly（GitHub @lnuxe）的 13 个开源项目：浏览器自动化、Flutter · Dart、AI · Agent 技能与前端工具，含语言标签、要点与仓库链接。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="feed.xml">
+<link rel="stylesheet" href="assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="index.html">首页</a></li>
+        <li><a href="projects.html" aria-current="page">项目</a></li>
+        <li><a href="archive.html">归档</a></li>
+        <li><a href="tags.html">标签</a></li>
+        <li><a href="about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="page-head">
+    <div class="container">
+      <h1 class="page-title">项目</h1>
+      <p class="page-desc">GitHub 账号 <a href="https://github.com/lnuxe">@lnuxe</a> 下的 13 个仓库，按用途分成四组。每个仓库的要点都来自仓库自身的 README，没有加工和夸大。</p>
+    </div>
+  </div>
+
+  <div class="container" style="max-width:980px; padding-block:2.5rem 4rem;">
+    <section class="project-group" id="automation" aria-labelledby="automation-title">
+      <div class="section-head">
+        <h2 class="section-title" id="automation-title">浏览器自动化<span class="tag-count">2 个仓库</span></h2>
+      </div>
+      <p class="page-desc" style="margin:-0.6rem 0 1.25rem;">把重复的点击交给机器。共同点是：确定性优先，能被代码表达的规则就不要交给模型。</p>
+      <ul class="project-grid">
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/starmerx_listing">starmerx_listing</a></h3>
+            <span class="lang-tag">Python</span>
+            </div>
+            <p class="project-desc">基于 Playwright 的确定性浏览器自动化，实现「产品池 → 加入上架计划 → 图片/价格校验 → 批量上架」全流程（MVP：圣诞花环单品类）。</p>
+            <ul class="project-points">
+              <li>Python 3.13 + Playwright 1.62 做确定性 DOM 操作；阿里云通义千问 Qwen 仅在规则层失败时兜底</li>
+              <li>登录用钉钉扫码 + storageState 持久化，登录态约 2 天过期，过期自动提醒重扫</li>
+              <li>利润试算引擎用有界二分防死循环：最多 20 次迭代，未命中即报「需人工介入」</li>
+              <li>默认干运行（<code>--dry-run</code>），确认后才用 <code>--no-dry-run</code> 真正执行</li>
+              <li>勘察优先：新页面先跑 <code>scripts/probe_product_pool.py</code> 确认选择器，再进执行模式；每次点击后用 DOM 状态（input value / checkbox checked）验收，失败即中止</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/starmerx_listing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/ldm">ldm / wechat-mcp</a></h3>
+            <span class="lang-tag">JavaScript</span>
+            </div>
+            <p class="project-desc">macOS 上通过 MCP 操作微信桌面版的示例服务器，把「发消息 / 读当前聊天」变成 Agent 可以调用的工具。</p>
+            <ul class="project-points">
+              <li><code>send-text-message</code>：激活 Mac 微信，搜索联系人或群聊并发送文本</li>
+              <li><code>get-current-chat-text</code>：读取当前聊天窗口里可见的文本内容</li>
+              <li>底层用 AppleScript + <code>osascript</code> 控制微信，封装成 MCP 工具供 Cursor / Claude Desktop 调用</li>
+              <li>仓库里附了 Vercel 部署与微信公众号服务器配置的完整说明，含内网穿透与超时排查</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/ldm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+              <a class="project-link" href="https://ldm-kohl.vercel.app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></svg>在线 Demo</a>
+            </div>
+          </li>
+      </ul>
+    </section>
+
+    <section class="project-group" id="flutter" aria-labelledby="flutter-title">
+      <div class="section-head">
+        <h2 class="section-title" id="flutter-title">Flutter · Dart<span class="tag-count">2 个仓库</span></h2>
+      </div>
+      <p class="page-desc" style="margin:-0.6rem 0 1.25rem;">桌面与移动端的工具型应用，主要用 Flutter 写成，能在 Windows / macOS / Web 上打包产物。</p>
+      <ul class="project-grid">
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/EPF-Unlocker">EPF-Unlocker</a></h3>
+            <span class="lang-tag">Dart</span>
+            </div>
+            <p class="project-desc">Flutter 桌面工具，用于解锁 Excel（.xlsx）与 PDF 文件保护，支持单文件、批量与定时自动解锁。</p>
+            <ul class="project-points">
+              <li>单文件解锁支持拖拽或选择；批量解锁递归扫描目录；定时自动解锁可监控目录并处理新文件，间隔 1–120 分钟</li>
+              <li>Excel 解锁原理：把 .xlsx 当 ZIP 解压，移除 <code>xl/worksheets/*.xml</code> 里的 <code>&lt;sheetProtection&gt;</code> 标签后重新打包</li>
+              <li>PDF 解锁走 <code>syncfusion_flutter_pdf</code>，也可用外部 qpdf 或 Python pypdf 兜底</li>
+              <li>不支持旧版 .xls（二进制格式），程序会提示先用 Excel 另存为 .xlsx</li>
+              <li>Apache-2.0 许可，GitHub Actions 跑 <code>flutter analyze</code>、<code>flutter test</code> 与多平台构建</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/EPF-Unlocker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/Imitate-DJI-HOME">Imitate-DJI-HOME</a></h3>
+            <span class="lang-tag">Flutter</span>
+            </div>
+            <p class="project-desc">Flutter 项目，模仿大疆 Home iOS App 的界面与交互实现。</p>
+            <ul class="project-points">
+              <li>用 Flutter 复刻大疆 Home iOS App 的页面结构与视觉风格</li>
+              <li>作为 Flutter 布局与自定义绘制的练习项目持续迭代</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/Imitate-DJI-HOME"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+      </ul>
+    </section>
+
+    <section class="project-group" id="agent" aria-labelledby="agent-title">
+      <div class="section-head">
+        <h2 class="section-title" id="agent-title">AI · Agent 技能<span class="tag-count">3 个仓库</span></h2>
+      </div>
+      <p class="page-desc" style="margin:-0.6rem 0 1.25rem;">给 Cursor / Claude Code 用的技能包与 RAG Demo：重点是边界、预算与可解释，而不是「让模型自由发挥」。</p>
+      <ul class="project-grid">
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/pickled-fish">pickled-fish（泡菜鱼）</a></h3>
+            <span class="lang-tag">HTML</span>
+            </div>
+            <p class="project-desc">macOS 微信本机聊天导出 + 心理/关系知识库 + 文件系统 RAG，跑在 Cursor Agent 上的技能包。</p>
+            <ul class="project-points">
+              <li>导出管线 <code>skills/wechat-mac-export</code>：面向 WeChat 4.1.10+，用 LLDB 抓 passphrase 再 PBKDF2 解密 <code>db_storage/*.db</code></li>
+              <li><code>wxecho export "昵称"</code> 写出 <code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code>，也支持 json / csv</li>
+              <li>整段聊天分析：时间线、话轮、冷场与转折点统计，避免只看截图断章取义</li>
+              <li>Index-first 文件系统 RAG：REGISTRY → PACK.md → rg 关键词 → Read 段落，同轮最多深读 2 个 pack 并强制标注 <code>packs_used</code></li>
+              <li>MIT 许可；DISCLAIMER 写明仅限本人数据、非诊疗、禁止骚扰</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/pickled-fish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/flutter-defect-triage">flutter-defect-triage</a></h3>
+            <span class="lang-tag">Shell</span>
+            </div>
+            <p class="project-desc">Cursor / Claude Code 用的缺陷分诊 skill，面向 Flutter Web、App WebView、小程序 H5、多宿主 JSBridge 等高坑密度场景。</p>
+            <ul class="project-points">
+              <li>核心理念「先对齐坑，再写修复」：未对齐前不写修复代码</li>
+              <li>强制四步：选业务包 → 扫坑（先读 RAG 索引再打开对应 Case）→ 坑点对齐（机制表交用户确认）→ 窄修复（Scope Gate 四维 + 合入后回填 Case）</li>
+              <li>双层结构：全局 skill 放流程、模板与跨仓 Case；项目 overlay 放本仓路径、协议与发布 slot</li>
+              <li>示例产品 Harbor Club 是虚构的，只演示 Tab 收缩、数据路径分裂、宿主权限三类真坑</li>
+              <li>MIT 许可，<code>setup</code> 一条命令同时装到 Cursor 与 Claude Code</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/flutter-defect-triage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/rag-cs-bot">rag-cs-bot</a></h3>
+            <span class="lang-tag">TypeScript</span>
+            </div>
+            <p class="project-desc">基于 Dify RAG 的电商客服自动化 Demo：TikTok Shop 售前 AI 客服 + 浏览器自动化回填。</p>
+            <ul class="project-points">
+              <li>链路：本地 Dify + RAG 知识库 → Flask 客服前端代理 → UI-TARS 浏览器自动化读取消息 → 调 Dify API 自动回复</li>
+              <li>知识库只放售前内容（产品 / 发货 / 物流 / 价格 / 尺码），售后不喂给 AI，从机制上强制转人工</li>
+              <li><code>cs_web/app.py</code> 的 <code>clean_answer()</code> 用正则剥离 DeepSeek 的思考过程，两种格式都处理</li>
+              <li>踩坑记录：Dify 知识库索引会因 SQLAlchemy 连接池耗尽而停滞，需要控制并发、串行处理文档</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/rag-cs-bot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+      </ul>
+    </section>
+
+    <section class="project-group" id="frontend" aria-labelledby="frontend-title">
+      <div class="section-head">
+        <h2 class="section-title" id="frontend-title">前端 · 工具<span class="tag-count">6 个仓库</span></h2>
+      </div>
+      <p class="page-desc" style="margin:-0.6rem 0 1.25rem;">纯前端的小工具、文档站与实验项目，多数可以直接静态部署。</p>
+      <ul class="project-grid">
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/preaim-rush-peek">preaim-rush-peek</a></h3>
+            <span class="lang-tag">JavaScript</span>
+            </div>
+            <p class="project-desc">无畏契约（VALORANT）风格瞄准训练器，专注「击杀 → 转火 → 再击杀」的 rush 抗压与快速补枪训练。</p>
+            <ul class="project-points">
+              <li>Vite 5 + PixiJS 8 + Three.js，无后端、无框架、无运行时依赖，构建产物可直接静态部署</li>
+              <li>2D / 3D 双模式，三维模式通过 <code>?mode=3d</code> 开启并使用射线命中判定</li>
+              <li>29 名特工头像随机轮换，支持上传自定义头像；参数化准星支持导入职业准星代码（<code>0;P;c;1;...</code>）</li>
+              <li>分轨音效（击杀 / 爆头 / 连杀 / miss / 局末），MP3 缺省时自动回退合成音效</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/preaim-rush-peek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/codebuddy-canvas-preview">codebuddy-canvas-preview</a></h3>
+            <span class="lang-tag">JavaScript</span>
+            </div>
+            <p class="project-desc">CodeBuddy CN / VS Code 扩展：在左侧边栏预览 .canvas.tsx，支持布局、表格、图表、DAG 布局与 diff。</p>
+            <ul class="project-points">
+              <li>独立开源运行时，按公开 canvas SDK 表面实现，不是闭源 IDE 编译器的搬运</li>
+              <li>支持导出 / 复制单文件可分享 HTML，可放 GitHub Pages、COS 或任意静态托管，不需要自建服务器</li>
+              <li>交互状态写到画布旁的 <code>*.canvas.data.json</code>；编辑时 Problems 面板显示 <code>cursor/canvas</code> 诊断</li>
+              <li>MIT 许可，本地打包用 <code>npm install &amp;&amp; npx @vscode/vsce package</code></li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/codebuddy-canvas-preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/typesafe-docs-zh">typesafe-docs-zh</a></h3>
+            <span class="lang-tag">Mintlify</span>
+            </div>
+            <p class="project-desc">TypeSafe AI 中文文档站，把 docs.typesafe.ai 的内容做成中文复刻，用 Mintlify 构建。</p>
+            <ul class="project-points">
+              <li>用 Mintlify（<code>mintlify</code> 4.x）维护文档结构，内容放在 <code>docs/</code> 目录</li>
+              <li>目标是让中文读者不用来回切语言就能读完 TypeSafe AI 的文档</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/typesafe-docs-zh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/naailong-gif">naailong-gif</a></h3>
+            <span class="lang-tag">HTML</span>
+            </div>
+            <p class="project-desc">一个极简的单页图床式页面：把一张动图放在页面中央，并提供直链。</p>
+            <ul class="project-points">
+              <li>纯 HTML + 内联 CSS 写成，没有构建步骤，双击就能打开</li>
+              <li>页面中央展示图片，下方给出 <code>naailong.gif</code> 的直链，方便分享或嵌入</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/naailong-gif"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/lnuxe.github.io">lnuxe.github.io</a></h3>
+            <span class="lang-tag">HTML</span>
+            </div>
+            <p class="project-desc">早年的 Hexo 博客，已经不再更新，由现在这个站点取代。</p>
+            <ul class="project-points">
+              <li>用 Hexo 生成的静态博客，文章包括 uniapp 登录流程、Flutter 状态管理总结、SpringBoot 数据设计等</li>
+              <li>保留在 GitHub Pages 上作为历史存档</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/lnuxe.github.io"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+          <li class="project-card">
+            <div class="project-head">
+              <h3 class="project-name"><a href="https://github.com/lnuxe/jay_music">jay_music</a></h3>
+            </div>
+            <p class="project-desc">音乐相关仓库，目前仓库里只有一句仓库说明（jay music repository）。</p>
+            <ul class="project-points">
+              <li>内容仍在整理中，仓库说明暂未展开</li>
+            </ul>
+            <div class="project-foot">
+              <a class="project-link" href="https://github.com/lnuxe/jay_music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 19c-4 1.2-4-2.1-6-2.6M15 21v-3.4c0-1 .1-1.4-.5-2 2.3-.3 4.5-1.2 4.5-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5 0C7.9 3.9 7 4.2 7 4.2a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.8 9.6c0 3.8 2.2 4.7 4.5 5-.4.4-.5.9-.5 1.6V21"/></svg>GitHub</a>
+            </div>
+          </li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="index.html">首页</a></li>
+          <li><a href="projects.html">项目清单</a></li>
+          <li><a href="archive.html">文章归档</a></li>
+          <li><a href="tags.html">标签索引</a></li>
+          <li><a href="about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="feed.xml">RSS 订阅</a></li>
+          <li><a href="sitemap.xml">站点地图</a></li>
+          <li><a href="robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
+  </div>
+</footer>
+
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="assets/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SupermanCantFly</title>
+    <link>https://supermancantfly.cc/</link>
+    <description>SupermanCantFly（GitHub @lnuxe）的技术笔记：浏览器自动化、AI Agent 技能包、RAG 与 Flutter 多端。文章全部来自真实跑过的项目。</description>
+    <language>zh-CN</language>
+    <copyright>© 2026 SupermanCantFly · CC BY-NC-SA 4.0</copyright>
+    <managingEditor>laiyu_073@qq.com (SupermanCantFly)</managingEditor>
+    <webMaster>laiyu_073@qq.com (SupermanCantFly)</webMaster>
+    <generator>手工维护的静态站点</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <ttl>1440</ttl>
+    <lastBuildDate>Mon, 28 Sep 2026 08:00:00 +0800</lastBuildDate>
+    <atom:link href="https://supermancantfly.cc/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出</title>
+      <link>https://supermancantfly.cc/posts/wechat-4x-db-export.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/wechat-4x-db-export.html</guid>
+      <pubDate>Mon, 28 Sep 2026 08:00:00 +0800</pubDate>
+      <category>逆向工程</category>
+      <category>逆向</category>
+      <category>微信</category>
+      <category>SQLCipher</category>
+      <category>macOS</category>
+      <description>微信 4.x 把聊天记录放进了加密的 WCDB 库。这条导出管线用 LLDB 抓 passphrase、按同一套参数走 PBKDF2 派生 key，再解密 db_storage/*.db，最后用 wxecho 写出 chat.txt。</description>
+    </item>
+    <item>
+      <title>为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</title>
+      <link>https://supermancantfly.cc/posts/index-first-filesystem-rag.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/index-first-filesystem-rag.html</guid>
+      <pubDate>Mon, 21 Sep 2026 08:00:00 +0800</pubDate>
+      <category>AI 知识库</category>
+      <category>RAG</category>
+      <category>Agent Skill</category>
+      <category>知识库</category>
+      <category>检索</category>
+      <description>个人知识库上向量库的四个隐性成本，以及 kb-rag 用 REGISTRY → PACK.md → rg → Read 四步路由替代向量检索的设计，配合同轮最多深读 2 个 pack 的预算控制。</description>
+    </item>
+    <item>
+      <title>确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</title>
+      <link>https://supermancantfly.cc/posts/deterministic-browser-automation.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/deterministic-browser-automation.html</guid>
+      <pubDate>Mon, 14 Sep 2026 08:00:00 +0800</pubDate>
+      <category>浏览器自动化</category>
+      <category>Playwright</category>
+      <category>Python</category>
+      <category>工程化</category>
+      <description>starmerx_listing 的安全设计：Python 3.13 + Playwright 1.62 确定性 DOM 操作、钉钉扫码 + storageState 登录态、有界二分利润试算、默认干运行与 DOM 状态验收。</description>
+    </item>
+    <item>
+      <title>用 RAG 做电商客服：怎么用知识库边界把售后强制转人工</title>
+      <link>https://supermancantfly.cc/posts/rag-cs-bot-manual-handoff.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/rag-cs-bot-manual-handoff.html</guid>
+      <pubDate>Mon, 07 Sep 2026 08:00:00 +0800</pubDate>
+      <category>AI 客服</category>
+      <category>RAG</category>
+      <category>AI Agent</category>
+      <category>Dify</category>
+      <category>客服</category>
+      <description>rag-cs-bot 用「知识库只放售前内容」从机制上强制售后转人工，附 Dify 全链路、clean_answer() 思考过程剥离与知识库索引连接池踩坑记录。</description>
+    </item>
+    <item>
+      <title>先对齐坑，再写修复：一个 Flutter 缺陷分诊 Skill 的设计</title>
+      <link>https://supermancantfly.cc/posts/flutter-defect-triage-skill.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/flutter-defect-triage-skill.html</guid>
+      <pubDate>Mon, 31 Aug 2026 08:00:00 +0800</pubDate>
+      <category>Agent Skill</category>
+      <category>Flutter</category>
+      <category>缺陷分诊</category>
+      <category>Cursor</category>
+      <description>flutter-defect-triage 的四步流程、坑点对齐表、cases-rag-index 索引、Scope Gate 与双层结构（全局 skill + 项目 overlay）的完整设计说明。</description>
+    </item>
+    <item>
+      <title>用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器</title>
+      <link>https://supermancantfly.cc/posts/preaim-rush-peek.html</link>
+      <guid isPermaLink="true">https://supermancantfly.cc/posts/preaim-rush-peek.html</guid>
+      <pubDate>Mon, 24 Aug 2026 08:00:00 +0800</pubDate>
+      <category>前端实战</category>
+      <category>前端</category>
+      <category>PixiJS</category>
+      <category>Three.js</category>
+      <category>游戏</category>
+      <description>preaim-rush-peek 的工程细节：2D / 3D 双模式与射线命中判定、参数化准星、分轨音效与缺省回退、资源本地覆盖机制与构建时 OBJ gzip。</description>
+    </item>
+  </channel>
+</rss>

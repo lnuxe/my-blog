@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由 · SupermanCantFly</title>
+<meta name="description" content="个人知识库上向量库的四个隐性成本，以及 pickled-fish 的 kb-rag 用 REGISTRY → PACK.md → rg → Read 四步路由替代向量检索的完整设计。">
+<meta name="author" content="SupermanCantFly">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="../feed.xml">
+<link rel="stylesheet" href="../assets/style.css">
+<script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+<div class="progress-bar" id="progress-bar" role="presentation"></div>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="../index.html">
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">SupermanCantFly</span>
+        <span class="brand-tagline">自动化 · Agent · Flutter</span>
+      </span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      <ul>
+        <li><a href="../index.html">首页</a></li>
+        <li><a href="../projects.html">项目</a></li>
+        <li><a href="../archive.html">归档</a></li>
+        <li><a href="../tags.html">标签</a></li>
+        <li><a href="../about.html">关于</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+      </button>
+      <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="article-wrap">
+    <article class="prose">
+      <header class="post-header">
+        <p class="post-eyebrow">AI 知识库</p>
+        <h1 class="post-title">为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</h1>
+        <p class="post-meta">
+          <time datetime="2026-09-21">2026 年 9 月 21 日</time>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>约 3400 字</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>阅读约 8 分钟</span>
+        </p>
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="../tags.html?tag=Agent%20Skill">Agent Skill</a></li><li><a class="tag" href="../tags.html?tag=%E7%9F%A5%E8%AF%86%E5%BA%93">知识库</a></li><li><a class="tag" href="../tags.html?tag=%E6%A3%80%E7%B4%A2">检索</a></li></ul>
+      </header>
+
+      <p class="lede">「上 RAG」现在已经成了一种条件反射：有文档，就切片；有切片，就做 embedding；有向量，就建库。但如果你的知识库只是几十到几百个 Markdown 文件——比如一整套自己的笔记——那么这套流程里的每一环，都在增加成本而不是增加准确率。<code>pickled-fish</code> 的 <code>skills/kb-rag</code> 走了另一条路：<strong>Index-first 文件系统 RAG</strong>，靠 <code>REGISTRY → PACK.md → rg → Read</code> 四步把检索做完。</p>
+
+      <nav class="toc" aria-label="本文目录">
+        <ol>
+          <li><a href="#scale">先看规模：个人知识库到底有多大</a></li>
+          <li><a href="#cost">向量库的四个隐性成本</a></li>
+          <li><a href="#foursteps">四步路由：Index-first 长什么样</a></li>
+          <li><a href="#registry">REGISTRY.md：一张路由表，不是索引</a></li>
+          <li><a href="#pack">PACK.md：一个包的边界声明</a></li>
+          <li><a href="#rg">为什么 rg 够用，而且比相似度更好用</a></li>
+          <li><a href="#budget">预算控制：同轮最多深读 2 个 pack</a></li>
+          <li><a href="#packs">已经捆好的知识包</a></li>
+          <li><a href="#extend">换成我自己的笔记</a></li>
+          <li><a href="#when">什么时候仍然该上向量库</a></li>
+          <li><a href="#summary">小结</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="scale">先看规模：个人知识库到底有多大</h2>
+
+      <p>把「RAG」当成一个不可分割的技术栈，是很多过度工程的起点。它其实由几件事组成：文本切分、向量化、向量存储、相似度检索、结果重排。这些组件在<strong>大规模、多来源、异构</strong>的场景里是必需品；而个人知识库的画像恰好相反：</p>
+
+      <ul>
+        <li><strong>总量小。</strong>几十到几百个 Markdown，压缩后可能还没一张手机照片大。</li>
+        <li><strong>结构清楚。</strong>文件本身就是分好类的：一个主题一个目录，一个主题一个包。</li>
+        <li><strong>作者只有一个。</strong>术语统一，不需要跨语料做语义对齐。</li>
+        <li><strong>更新频繁。</strong>改一段话是常事，改动之后索引要跟着重建。</li>
+      </ul>
+
+      <p>在这样的规模上，「全量读一遍」和「精准检索一段」之间的差别，往往只是几秒钟和几毛钱。真正拉开差距的不是检索速度，而是<strong>检索结果能不能解释、能不能复现</strong>。</p>
+
+      <h2 id="cost">向量库的四个隐性成本</h2>
+
+      <p>不是说向量库不好，而是它在小规模下要额外付出四笔账：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">成本</th><th scope="col">具体表现</th><th scope="col">后果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>切分破坏语义</td><td>固定长度切片会把一段完整论述切成两半</td><td>检索回来的「证据」缺了前提，结论跟着偏</td></tr>
+            <tr><td>依赖外部组件</td><td>需要跑 embedding 模型，本地或云端</td><td>离线不可用、隐私边界变模糊、多一层故障点</td></tr>
+            <tr><td>索引与原文漂移</td><td>改了文档但没重建索引</td><td>检索到的是旧内容，而且很难察觉</td></tr>
+            <tr><td>结果不可解释</td><td>「相似度 0.83」不是一个能追问的理由</td><td>出了错无法定位是切分问题还是模型问题</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>反过来，文件系统检索的成本几乎为零，而且有一个向量库很难做到的特性：<strong>每一条检索结果都可以被完整复述</strong>。是哪个文件、哪一行、用什么命令找到的——全部可复现。</p>
+
+      <h2 id="foursteps">四步路由：Index-first 长什么样</h2>
+
+      <p>Index-first 的核心思想是「先索引，再展开」——和网页从目录点到正文的过程一样：</p>
+
+      <div class="code-block"><pre><code>REGISTRY.md   ← 先看路由表：这个问题该找哪个 pack
+    ↓
+PACK.md       ← 打开那个包的门牌：它覆盖什么、不覆盖什么
+    ↓
+rg 关键词      ← 在包里用文本搜索定位到候选段落
+    ↓
+Read 段落      ← 只读命中的那几段，而不是整个文件</code></pre></div>
+
+      <p>四步的关键在于<strong>每一步都在缩小范围</strong>。到第三步时，搜索空间已经从「所有笔记」缩到「一个包」；到第四步时，读进上下文的只剩几段。整个过程中，上下文预算花在「确认找到的东西对不对」上，而不是花在「把可能的都搬进来」上。</p>
+
+      <blockquote>
+        <p>这套流程在仓库里被描述为 progressive disclosure（渐进式展开）：<strong>先给索引，再给正文</strong>。它同时解决两个问题——检索精度和上下文预算。而这两者在向量方案里经常是互相拉扯的：提高召回就得放进更多切片，放进更多切片就更难判断哪一条才真正相关。</p>
+      </blockquote>
+
+      <h2 id="registry">REGISTRY.md：一张路由表，不是索引</h2>
+
+      <p><code>knowledge/REGISTRY.md</code> 是整套机制的第一入口，它的定位很明确：<strong>意图 → pack id 的路由表</strong>。它不是把所有文档列一遍的目录，而是回答「遇到这类问题，去哪个包里找」。</p>
+
+      <p>仓库 README 里给了一张很直观的对照表，我把它抄在这里，因为它比任何解释都更能说明「路由」两个字的意思：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">你说</th><th scope="col">Agent 实际打开</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>导出某某的聊天</td><td><code>skills/wechat-mac-export/SKILL.md</code> → <code>wxecho export</code></td></tr>
+            <tr><td>这一大段 chat.txt 什么意思</td><td><code>local-chat-pipeline.md</code> → 再选理论 / 实操 pack</td></tr>
+            <tr><td>她什么意思 / 怎么回 / 挽回</td><td>默认 <code>skills/qingsheng/</code></td></tr>
+            <tr><td>用依恋 / Gottman / NVC 看</td><td><code>knowledge/packs/attachment-ecr</code> · <code>lovelab</code> · <code>nvc</code></td></tr>
+            <tr><td>谈判式沟通、难开口</td><td><code>knowledge/packs/howtotalk/</code>（13 个子框架）</td></tr>
+            <tr><td>长期关系怎么维护</td><td><code>knowledge/packs/partner/</code></td></tr>
+            <tr><td>换一套我自己的笔记</td><td><code>scripts/add-pack.sh</code> → <code>knowledge/custom/&lt;id&gt;</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>这张表的存在意味着两件事。第一，检索的<strong>第一跳是确定性的</strong>：不是「猜哪个文档相似」，而是「按意图查表」。第二，路由表是<strong>可维护的</strong>：加一个知识包时，只需要在表里加一行，而不是重新训练或重新构建任何东西。</p>
+
+      <h2 id="pack">PACK.md：一个包的边界声明</h2>
+
+      <p>第二步是打开 <code>PACK.md</code>。设计意图上，它是每个知识包的门牌，回答三个问题：<strong>这个包覆盖什么、不覆盖什么、入口文件在哪</strong>。Agent 先读完门牌，再决定要不要真的展开里面的内容——这正是一次「先索引，后正文」的展开。</p>
+
+      <p>「不覆盖什么」这一条尤其重要。知识库真正的风险从来不是「找不到」，而是「找到了不该用的那一套」。一个包如果只声明自己覆盖什么，Agent 就会默认它在越界的问题上也有发言权；把边界写清楚，越界时才有「没有依据」这个正确答案。</p>
+
+      <blockquote>
+        <p>这里要老实说明一句：<code>PACK.md</code> 的字段与模板，各包可以有自己的写法，具体以仓库里对应 pack 的实际内容为准。本文描述的是它在四步路由里承担的角色，不是一份可以直接照抄的 schema。</p>
+      </blockquote>
+
+      <h2 id="rg">为什么 rg 够用，而且比相似度更好用</h2>
+
+      <p>第三步是 <code>rg</code>——ripgrep，一个文本搜索工具。在「个人知识库」这个规模上，它比向量检索有三个明确优势：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">维度</th><th scope="col">rg 关键词检索</th><th scope="col">向量相似度检索</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>结果可解释</td><td>命中哪一行、哪个文件，一目了然</td><td>只有一个相似度分数</td></tr>
+            <tr><td>可复现</td><td>同一条命令永远给同样的结果</td><td>受模型版本、切分方式影响</td></tr>
+            <tr><td>更新成本</td><td>改文件即生效，零重建</td><td>需要重新切分与向量化</td></tr>
+            <tr><td>运行依赖</td><td>一个本地二进制</td><td>embedding 模型 + 向量库</td></tr>
+            <tr><td>隐私</td><td>数据不出本机，也不需要联网</td><td>取决于是本地模型还是云服务</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>它的短板也很清楚：<strong>依赖关键词命中</strong>。所以在这套设计里，关键词不是「碰运气」，而是由前两步兜住的——REGISTRY 已经把范围收到一个包里，PACK.md 又告诉你包里的术语大概长什么样，剩下的搜索在一个小得多的空间里做，命中率自然完全不同。换句话说，<strong>Index-first 把语义理解交给了前两步的人工结构，把最后一步留给确定性的文本匹配。</strong></p>
+
+      <h2 id="budget">预算控制：同轮最多深读 2 个 pack</h2>
+
+      <p>第四步是 <code>Read</code>——真正把命中的段落读进上下文。这里有一条硬约束：<strong>同一轮里最多深读 2 个 pack，并且必须标注 <code>packs_used</code></strong>。</p>
+
+      <p>这条规则一次解决三个问题：</p>
+
+      <ul>
+        <li><strong>上下文不爆炸。</strong>知识包是可以很厚的，无限展开的后果是每一轮都在为「可能有用」付费。</li>
+        <li><strong>结论必须收敛。</strong>只允许两个来源，就等于要求回答聚焦在 1–2 个关键点上，而不是把十种理论并列摆出来。</li>
+        <li><strong>过程可追溯。</strong><code>packs_used</code> 是一份自证材料：这一轮到底动了哪些包，白纸黑字写出来。结论可疑时，可以直接回到那两个包去核对，而不是怀疑「它是不是偷偷读了别的」。</li>
+      </ul>
+
+      <p>把这条约束和四步路由放在一起看，会发现整套设计的取向非常一致：<strong>宁可少读一点、读准一点，也不要读多、读杂。</strong></p>
+
+      <h2 id="packs">已经捆好的知识包</h2>
+
+      <p>仓库里预设了一批 MIT 许可的知识包，放在 <code>knowledge/packs/</code> 下，路由表直接指向它们：</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">Pack</th><th scope="col">路径</th><th scope="col">具体能力</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>psych-foundations</code></td><td><code>knowledge/packs/psych-foundations/</code></td><td>依恋 / Gottman / NVC / Sternberg 等课程地图 → 跳转表</td></tr>
+            <tr><td><code>attachment-ecr</code></td><td><code>knowledge/packs/attachment-ecr/</code></td><td>ECR-R 依恋风格对话评估</td></tr>
+            <tr><td><code>dating-master</code></td><td><code>knowledge/packs/dating-master/</code></td><td>语用学 · 依恋 · 信号博弈</td></tr>
+            <tr><td><code>lovelab</code></td><td><code>knowledge/packs/lovelab/</code></td><td>Gottman 四骑士 / NVC / 认知扭曲 / 动力</td></tr>
+            <tr><td><code>chatrel</code></td><td><code>knowledge/packs/chatrel/docs/</code></td><td>Sternberg · Knapp · 社交渗透 · EWS 等方法论</td></tr>
+            <tr><td><code>rel-consult</code></td><td><code>knowledge/packs/rel-consult/</code></td><td>关系咨询协议 + 伦理护栏</td></tr>
+            <tr><td><code>nvc</code></td><td><code>knowledge/packs/nvc/</code></td><td>非暴力沟通四步改写</td></tr>
+            <tr><td><code>howtotalk</code></td><td><code>knowledge/packs/howtotalk/</code></td><td>13 套沟通 / 谈判 / 影响力 SKILL</td></tr>
+            <tr><td><code>partner</code></td><td><code>knowledge/packs/partner/</code></td><td>伴侣画像、场景话术、关系健康指标</td></tr>
+            <tr><td><code>qingsheng</code></td><td><code>skills/qingsheng/</code></td><td>怎么回、挽回、展示面、Autopilot 子命令</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>注意 <code>qingsheng</code> 不在 <code>knowledge/packs/</code> 下，而在 <code>skills/</code> 下——它是技能而不是知识包，但同样可以被路由表指向。这个细节说明路由表的粒度是<strong>「可以独立展开的单元」</strong>，而不是「目录树的位置」。此外还有一批可选的远端大库，出于体积考虑没有默认 vendoring，在 <code>REGISTRY.md</code> 的 D 节里列出。</p>
+
+      <h2 id="extend">换成我自己的笔记</h2>
+
+      <p>要换成自己的知识库，不需要改代码，只需装一个包：</p>
+
+      <div class="code-block"><pre><code>bash ~/.cursor/skills/pickled-fish/scripts/add-pack.sh psych-summaries \
+  https://github.com/cognitivetech/Psychology-Summaries</code></pre></div>
+
+      <p>它既接受 git 地址，也接受本地目录，装进去的位置是 <code>knowledge/custom/&lt;id&gt;</code>。这个目录<strong>默认不进公开 git</strong>——因为里面装的往往是自己整理的私有笔记，公开仓库里不该出现它们。装好之后，在 <code>REGISTRY.md</code> 里补一行路由即可。</p>
+
+      <p>整个扩展动作的成本就是「一行路由 + 一个目录」，没有重建索引、没有重新向量化、没有等待任务跑完。这也是 Index-first 在个人场景下最实际的一个好处：<strong>知识库的维护成本和它的大小成正比，而不是和它的大小成平方。</strong></p>
+
+      <h2 id="when">什么时候仍然该上向量库</h2>
+
+      <p>把这套方案说成万能是不诚实的。下面这几种情况，向量检索确实更合适：</p>
+
+      <ul>
+        <li><strong>语料规模真的很大。</strong>成千上万份文档，人工结构已经维护不过来。</li>
+        <li><strong>几乎没有稳定术语。</strong>同一个概念在文档里有十种写法，关键词命中率会掉到不可用。</li>
+        <li><strong>需要跨语言检索。</strong>用中文问题找英文材料，这正是 embedding 的强项。</li>
+        <li><strong>原文本身是非结构化长文本。</strong>没有天然的目录层级可供路由。</li>
+      </ul>
+
+      <p>反过来说，只要满足「规模可控、结构清楚、术语统一、改动频繁」这四条，文件系统索引的性价比就明显更高——而个人知识库通常四条全中。</p>
+
+      <h2 id="summary">小结</h2>
+
+      <p>Index-first 文件系统 RAG 的四步是 <code>REGISTRY → PACK.md → rg → Read</code>，配套的硬约束是同轮最多深读 2 个 pack，并强制标注 <code>packs_used</code>。它没有用任何新技术，只是把「先看目录、再翻正文」这个人类查资料的习惯，写成了 Agent 可以稳定执行的流程。</p>
+
+      <p>值得带走的判断是这一条：<strong>检索质量的上限，往往由知识库的结构决定，而不是由检索算法的先进程度决定。</strong>先把「意图 → 包 → 文件 → 段落」这条路径修好，再考虑要不要引入向量；顺序反过来的话，你会得到一个很快、但说不清为什么的检索系统。</p>
+
+      <footer class="post-footer">
+        <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=RAG">RAG</a></li><li><a class="tag" href="../tags.html?tag=Agent%20Skill">Agent Skill</a></li><li><a class="tag" href="../tags.html?tag=%E7%9F%A5%E8%AF%86%E5%BA%93">知识库</a></li><li><a class="tag" href="../tags.html?tag=%E6%A3%80%E7%B4%A2">检索</a></li></ul>
+        <nav class="post-nav" aria-label="文章翻页">
+          <a class="post-nav-prev" href="wechat-4x-db-export.html"><span class="post-nav-label">← 上一篇</span><span class="post-nav-title">把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出</span></a>
+          <a class="is-next" href="deterministic-browser-automation.html"><span class="post-nav-label">下一篇 →</span><span class="post-nav-title">确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</span></a>
+        </nav>
+      </footer>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
+        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
+        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
+        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 49V17"/>
+          <path d="M18.5 30.5 32 17l13.5 13.5"/>
+        </g>
+        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
+      </svg>
+          <strong>SupermanCantFly</strong>
+        </div>
+        <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
+      </div>
+      <div>
+        <h2 class="footer-heading">导航</h2>
+        <ul class="footer-links">
+          <li><a href="../index.html">首页</a></li>
+          <li><a href="../projects.html">项目清单</a></li>
+          <li><a href="../archive.html">文章归档</a></li>
+          <li><a href="../tags.html">标签索引</a></li>
+          <li><a href="../about.html">关于我</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-heading">订阅</h2>
+        <ul class="footer-links">
+          <li><a href="../feed.xml">RSS 订阅</a></li>
+          <li><a href="../sitemap.xml">站点地图</a></li>
+          <li><a href="../robots.txt">robots.txt</a></li>
+          <li><a href="https://github.com/lnuxe">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SupermanCantFly · 内容采用 <a href="../about.html">CC BY-NC-SA 4.0</a> 许可协议</p>
+      <p>由纯 HTML / CSS / JavaScript 手工构建</p>
+    </div>
+  </div>
+</footer>
+
+<button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+</button>
+
+<script src="../assets/main.js" defer></script>
+</body>
+</html>
