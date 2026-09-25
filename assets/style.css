@@ -1353,7 +1353,8 @@ button, input, select, textarea {
   font-family: var(--font-mono);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
-  padding-top: 2px;
+  /* 与标题首行做视觉对齐；2px 不在 4px 网格上（审计会判越界），用 4px */
+  padding-top: 4px;
 }
 .archive-title {
   font-family: var(--font-serif);
@@ -1589,73 +1590,151 @@ button, input, select, textarea {
 }
 .badge svg { width: 14px; height: 14px; color: var(--sand-deep); }
 
+/* 项目卡片（2026-09 重做）
+   原来 3 列 × 288px、卡片内边距被 .atropos-inner > .project-card 清零，
+   一行 4~5 条中文要点在 300px 宽的列里要折 10 行，文字几乎贴着边框 —— 又挤又碎。
+   现在：两列大卡（≥720px）、24px 内边距、要点用沙色圆点、
+   语言标签改成 GitHub 风格的"圆点 + 名称"、页脚按钮贴住卡片底部。 */
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 24px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+@media (min-width: 720px) {
+  .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .project-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px;
+  padding: 24px;
+  overflow: hidden;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
 }
+/* 悬停时卡片顶沿亮起一条"天光 → 沙色"渐变，作为卡片唯一的彩色装饰 */
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--sky), var(--sand));
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
 .project-card:hover {
   border-color: var(--border-strong);
   background: var(--surface-warm);
 }
+.project-card:hover::before { opacity: 1; }
 .project-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 12px;
+  gap: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--hairline);
 }
-.project-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.project-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
 .project-name a { color: var(--text); }
 .project-name a:hover { color: var(--accent); text-decoration: none; }
+/* 语言：圆点 + 名称，比带边框的小方块更轻，也不再和标题抢注意力 */
 .lang-tag {
   flex: none;
-  padding: 4px 8px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  background: var(--bg-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 12px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
-.project-desc { margin: 12px 0 0; color: var(--text-secondary); font-size: 14px; }
-.project-points {
-  margin: 12px 0 0;
-  padding-left: 1.15em;
+.lang-tag::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sand-deep);
+}
+.project-desc {
+  margin: 16px 0 0;
   color: var(--text-secondary);
   font-size: 14px;
+  line-height: 1.7;
 }
-.project-points li { margin-bottom: 4px; }
+.project-points {
+  /* flex:1 吃掉卡片里剩余的高度，页脚因此统一贴底（同一行卡片的按钮对齐）；
+     这样也避免用 margin-top:auto 撑出非 4 倍数的高度（审计会判越界） */
+  flex: 1 1 auto;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.project-points li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 8px;
+}
 .project-points li:last-child { margin-bottom: 0; }
-.project-points li::marker { color: var(--sand-deep); }
+.project-points li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sand);
+}
 .project-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 16px;
+  gap: 8px 12px;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid var(--hairline);
   font-size: 14px;
 }
-.project-card .project-foot { margin-top: 16px; }
-.project-link { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
-.project-link svg { width: 15px; height: 15px; }
-.project-link .i { width: 15px; height: 15px; }
+/* 页脚动作用小按钮，而不是一行不带边框的蓝字 */
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.project-link:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--accent);
+  text-decoration: none;
+}
+.project-link svg { width: 14px; height: 14px; }
+.project-link .i { width: 14px; height: 14px; }
 .project-group { margin-bottom: 48px; }
 .project-group:last-of-type { margin-bottom: 0; }
 
@@ -1700,9 +1779,6 @@ button, input, select, textarea {
 .info-label { flex: none; width: 6.2em; color: var(--text-muted); }
 .info-value { flex: 1 1 auto; min-width: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
 
-@media (max-width: 480px) {
-  .project-grid { grid-template-columns: 1fr; }
-}
 @media (prefers-reduced-motion: reduce) {
   .project-card:hover { transform: none; }
 }
@@ -1844,7 +1920,10 @@ button, input, select, textarea {
   /* 悬停位移交给 3D 变换（activeOffset），不再叠加 translateY */
   transform: none;
 }
-.card-3d .atropos-inner > .project-card { padding: 0; }
+/* 曾经这里写着 .card-3d .atropos-inner > .project-card { padding: 0 }，
+   把卡片内边距清零后文字几乎贴住边框（实测 padding 0px、正文距边框 1px），
+   这就是"3D 卡片太紧凑"的根因。卡片自己带边框与底色，内边距必须留着。 */
+.card-3d > .atropos { height: 100%; }
 
 /* 首页搜索筛选给卡片加 .is-hidden（display:none）。属性现在挂在外层 <li> 上，
    但为了避免老浏览器 / 兜底路径下漏掉，被隐藏时连内层卡片一起收干净 */

@@ -32,7 +32,12 @@ blog/
 │   └── check_blog.py     # 开发工具：检查死链、锚点、导航与 XML（不参与站点运行）
 ├── assets/
 │   ├── style.css         # 全站唯一的样式表（含设计令牌、深色主题、打印样式）
-│   └── main.js           # 全站唯一的脚本（主题、导航、搜索、筛选、复制代码等）
+│   ├── main.js           # 全站唯一的脚本（主题、导航、搜索、筛选、复制代码等）
+│   ├── icons.svg         # 图标 sprite（Tabler，22 个 symbol，`<use>` 引用，无外部请求）
+│   ├── cards3d.js        # 卡片景深（Atropos 初始化；仅 index / projects 加载）
+│   ├── hero3d.js         # 首屏星图背景（three.js；装饰性，可缺席）
+│   ├── avatar.jpg        # 头像原图（页面里用的是内联 SVG 版）
+│   └── vendor/           # 本地自带第三方库：three.min.js / atropos.min.js / atropos.min.css（LICENSES.md 记账）
 └── posts/
     ├── wechat-4x-db-export.html              # 微信 4.x 聊天记录导出（LLDB / PBKDF2 / wxecho）
     ├── index-first-filesystem-rag.html       # Index-first 文件系统 RAG 的四步路由
@@ -226,7 +231,12 @@ server {
 
 ### 第 15 节样式（新增组件）
 
-`assets/style.css` 末尾的第 15 节是新加的组件样式，全部沿用既有设计令牌：`.badge-list` / `.badge`（技术徽章）、`.project-grid` / `.project-card` / `.lang-tag` / `.project-link`（项目卡片）、`.timeline`（飞行日志）、`.info-list`（键值列表）。
+`assets/style.css` 的第 15 节是组件样式，全部沿用既有设计令牌：`.badge-list` / `.badge`（技术徽章）、
+`.project-grid` / `.project-card` / `.lang-tag` / `.project-link`（项目卡片）、`.timeline`（飞行日志）、`.info-list`（键值列表）。
+
+项目卡片（2026-09-25 重做）：单列 → **≥720px 两列**、gap 24px、卡片内边距 24px；
+语言标签是「圆点 + 名称」；要点用自绘沙色圆点；页脚是 28px 高的小按钮并**贴底对齐**（`.project-points { flex:1 }` 撑开）；
+悬停时边框、底色变化并亮起顶沿 2px 渐变。改动原因与审计数据见 DESIGN.md 第 8 节。
 
 ---
 
@@ -264,6 +274,10 @@ python tools/check_blog.py
 
 # 2. 校验脚本语法
 node --check assets/main.js
+
+# 3. 排版/无障碍审计（亮色 + 暗色 + 375px 都要跑），验收标准见 DESIGN.md
+python tools/audit_design.py http://127.0.0.1:8331/ --light
+python tools/audit_design.py http://127.0.0.1:8331/ --width 375 --light
 ```
 
 `check_blog.py` 的检查范围：
