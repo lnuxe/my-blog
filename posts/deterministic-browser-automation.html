@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -83,7 +83,7 @@
         </ol>
       </nav>
 
-      <h2 id="why">「失控」是怎么发生的</h2>
+      <h2 id="why">「失控」是怎么发生的<a class="heading-anchor" href="#why" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>先看这个项目要解决的问题：把「产品池 → 加入上架计划 → 图片/价格校验 → 批量上架」这条流程自动化，MVP 范围收窄到圣诞花环单品类。它的反面教材非常典型：</p>
 
@@ -95,13 +95,15 @@
 
       <p>这三种失败有一个共同特征：<strong>它们都不会报错</strong>。程序照常跑完，日志里一片绿，只有店铺后台知道出了事。所以这个项目的对抗手段不是「让模型更聪明」，而是把流程切成两类：<strong>规则层（纯代码、可复现、会抛错）和兜底层（模型，只在规则层失败时介入）</strong>。</p>
 
-      <h2 id="stack">技术栈与四阶段编排</h2>
+      <h2 id="stack">技术栈与四阶段编排<a class="heading-anchor" href="#stack" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>技术栈就三样：Python 3.13、Playwright 1.62、以及作为兜底的阿里云通义千问 Qwen。Playwright 负责确定性 DOM 操作，Qwen 是预留位——只有在规则层失败时才被调用。</p>
 
       <p>入口是 <code>run.sh</code>，<code>src/main.py</code> 是四阶段编排：</p>
 
-      <div class="code-block"><pre><code>starmerx_listing/
+      <div class="code-block" data-lang="tree">
+        <div class="code-bar"><span class="code-lang">tree</span></div>
+        <pre><code>starmerx_listing/
 ├── run.sh                 # 一键启动脚本
 ├── config.json            # 全部配置（固定表单值/类目/校验规则/安全开关）
 ├── src/
@@ -114,7 +116,27 @@
 │   └── config.py          # 配置/日志
 ├── scripts/
 │   └── probe_product_pool.py  # 独立勘察工具
-└── runtime/               # storage_state.json、勘察截图、日志</code></pre></div>
+└── runtime/               # storage_state.json、勘察截图、日志</code></pre>
+      </div>
+
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 四阶段编排，以及默认干运行的分支</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  L["run.sh login：钉钉扫码"] --&gt; SS["runtime/storage_state.json&lt;br/&gt;约 2 天后过期"]
+  SS --&gt; S1["① 产品池：按系统类目取候选 SKU"]
+  S1 --&gt; S2["② 加入上架计划&lt;br/&gt;phase1.py"]
+  S2 --&gt; S3["③ 图片 / 价格校验&lt;br/&gt;phase2.py"]
+  S3 --&gt; S4["④ 批量上架&lt;br/&gt;phase2.py"]
+  S4 --&gt; G{"dry-run？"}
+  G --&gt;|"默认：不带参数"| DRY["只输出清单，店铺没有变化"]
+  G --&gt;|"显式关闭干运行"| LIVE["真实写入店铺"]
+        </div></div>
+        <figcaption class="diagram-caption">登录态是这条链上唯一会自己过期的东西（storageState 约 2 天）；干运行不是调试开关而是默认值，要真上架必须显式关掉它，再叠加 --max-sku 限量。从“写完代码”到“真实上架”之间因此隔着两次确认。</figcaption>
+      </figure>
 
       <p>把配置单独放进 <code>config.json</code> 是个不太起眼但很重要的决定：固定表单值、类目、校验规则、安全开关全在里面，于是「改规则」不需要改代码，也就不会在改规则的时候顺手改坏流程。</p>
 
@@ -140,11 +162,14 @@
         <p>一个版本差异值得说明：早期的一份项目宣传页把这条流程写成「NestJS + Playwright 的五步流水线」，而仓库代码与 README 的现状是 <strong>Python 3.13 + Playwright 的四阶段编排</strong>（<code>src/main.py</code>）。本文以仓库为准——这也是本文所有参数与文件名的来源。</p>
       </blockquote>
 
-      <h2 id="login">登录态：钉钉扫码 + storageState 的两天寿命</h2>
+      <h2 id="login">登录态：钉钉扫码 + storageState 的两天寿命<a class="heading-anchor" href="#login" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>登录用的是钉钉扫码，登录结果通过 Playwright 的 <code>storageState</code> 持久化到 <code>runtime/storage_state.json</code>。命令行里第一次要显式跑一次：</p>
 
-      <div class="code-block"><pre><code>./run.sh login                # 弹出浏览器，钉钉扫码（首次/过期）</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>./run.sh login                # 弹出浏览器，钉钉扫码（首次/过期）</code></pre>
+      </div>
 
       <p>这里有一个必须写进设计里的现实：<strong>这份登录态大约 2 天就会过期</strong>。它不是「配好就一劳永逸」的那类凭据。过期之后的处理方式决定了这套系统是「能长期跑」还是「跑三天就要人管」：</p>
 
@@ -154,18 +179,21 @@
         <li>不要试图绕过扫码去硬编码凭据，这会把一个「两天一次的人工动作」变成「一个迟早会炸的隐式依赖」。</li>
       </ul>
 
-      <h2 id="probe">勘察优先：先确认选择器，再谈执行</h2>
+      <h2 id="probe">勘察优先：先确认选择器，再谈执行<a class="heading-anchor" href="#probe" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>项目里有一条硬性流程：<strong>任何新页面，先跑 probe 确认选择器，确认后才进入执行模式。</strong></p>
 
-      <div class="code-block"><pre><code>./run.sh probe-phase1         # 勘察产品池页
-./run.sh probe-phase2         # 勘察上架计划页</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>./run.sh probe-phase1         # 勘察产品池页
+./run.sh probe-phase2         # 勘察上架计划页</code></pre>
+      </div>
 
       <p><code>scripts/probe_product_pool.py</code> 是一个独立的勘察工具，只观察、不修改数据。这个「先勘察」的动作解决的是一个很典型的悖论：写自动化最难的部分不是点击，而是<strong>在你还没看清页面结构之前，就得先写选择器</strong>。没有勘察步骤，你就只能一边跑真流程一边调选择器——而每一次失败的尝试，都可能已经在页面上留下痕迹。</p>
 
       <p>勘察的产物留在 <code>runtime/</code> 下（截图与日志），它同时充当了「这个选择器当时长什么样」的证据。页面改版导致自动化失效时，翻一眼旧截图就能确认是页面变了，还是代码写错了。</p>
 
-      <h2 id="price">利润试算：用有界二分防死循环</h2>
+      <h2 id="price">利润试算：用有界二分防死循环<a class="heading-anchor" href="#price" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>整条流程里最需要「确定性」的地方是利润试算。业务约束是这样的：个人利润目标定在 4%–6%，而达成方式是<strong>反向调整「公司利润率」</strong>——因为个人利润是公司利润率的函数。可调边界暂定在 0.30–0.60。</p>
 
@@ -188,27 +216,30 @@
 
       <p>第三条尤其值得学。README 里明明白白写着：如果利润率边界错误，利润试算可能永远无法命中区间而死循环——<strong>所以需要人在真实的「利润测算」弹窗里确认可调范围</strong>。把「我不知道」写进文档，比让程序假装知道要负责任得多。</p>
 
-      <h2 id="dryrun">默认干运行</h2>
+      <h2 id="dryrun">默认干运行<a class="heading-anchor" href="#dryrun" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>所有阶段默认是干运行：只检查、只输出清单，不真正上架。要真执行，必须显式加参数：</p>
 
-      <div class="code-block"><pre><code># 跑通单品类（默认干运行：只检查不上架）
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code># 跑通单品类（默认干运行：只检查不上架）
 ./run.sh phase1 --max-sku 1   # 选 1 个 SKU 加入上架计划
 ./run.sh phase2              # 图片/价格校验（干运行）
 
 # 正式执行（确认无误后）
 ./run.sh phase1 --no-dry-run --max-sku 5
-./run.sh phase2 --no-dry-run</code></pre></div>
+./run.sh phase2 --no-dry-run</code></pre>
+      </div>
 
       <p>注意 <code>--max-sku</code> 这个参数的存在本身也是一种安全设计：它让「先小批量验证」成为一个不需要额外开发就能做到的动作。默认干运行 + 限量执行，两者叠加之后的实际效果是——<strong>从「写完代码」到「真实上架」之间，隔着两次显式的确认</strong>。这两次确认谁都不能省，包括自己。</p>
 
-      <h2 id="verify">每一步都用 DOM 状态验收</h2>
+      <h2 id="verify">每一步都用 DOM 状态验收<a class="heading-anchor" href="#verify" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>自动化脚本最常见的坏习惯是「点完就走」：<code>click()</code> 之后不检查任何东西，假定它成功了。这个项目的要求是：<strong>每次点击后都用 DOM 状态确认，失败即中止</strong>——具体确认的对象是输入框的 value、复选框的 checked 这类状态量，而不是「页面看起来变了」。</p>
 
       <p>这条规则把「静默失败」转成了「显式报错」。在批量操作里，静默失败是最贵的：第 3 个 SKU 没勾上，程序继续往下跑，最后你得到的是 100 个商品里混着几个配置错误的——而这些错误要花比跑一遍自动化多得多的时间去清理。</p>
 
-      <h2 id="llm">LLM 被放在哪个位置</h2>
+      <h2 id="llm">LLM 被放在哪个位置<a class="heading-anchor" href="#llm" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>把前面的规则串起来，LLM 的位置就非常清楚了：</p>
 
@@ -227,24 +258,42 @@
         </table>
       </div>
 
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 2 · 规则层在前，LLM 在规则失败之后</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  W["规则层：Playwright 定位与点击&lt;br/&gt;纯代码 + 有界二分"] --&gt; Q{"这一步规则层通过了吗？"}
+  Q --&gt;|"通过"| OK["继续下一步"]
+  Q --&gt;|"不通过"| ERR["显式报错并中止，不静默跳过"]
+  ERR --&gt; M["兜底层：通义千问 Qwen（预留位）"]
+        </div></div>
+        <figcaption class="diagram-caption">主路径上只有确定性代码：定位、点击、利润试算都可复现、会抛错。模型是“规则失败之后的下一个人”，它的输出不稳定没关系，因为它本来就不在主路径上。</figcaption>
+      </figure>
+
       <p>这张表可以概括成一句话：<strong>把模型当作「规则失败之后的下一个人」，而不是「第一步就上场的那个人」</strong>。它的输出不需要稳定，因为它本来就不是主路径；主路径必须稳定，所以主路径里不能有它。</p>
 
-      <h2 id="pending">没有做完的部分，写在 README 里</h2>
+      <h2 id="pending">没有做完的部分，写在 README 里<a class="heading-anchor" href="#pending" aria-label="本节链接" tabindex="-1">#</a></h2>
 
-      <div class="note">
-<p class="note-head"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-alert-triangle"></use></svg>待确认事项</p>
-<p>这个仓库有一节叫「待确认事项（上线前必须解决）」，里面列了两条：一是公司利润率的可调边界（暂定 0.30–0.60）；二是 <code>src/price_calc.py</code> 里的个人利润公式<strong>是占位模型</strong>（用 <code>K=0.24</code> 做缩放），需要勘察到真实「利润测算」弹窗的逻辑之后替换成精确公式。</p>
-</div>
+      <div class="note note-warning">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-alert-triangle"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">待确认事项</p>
+          <p>这个仓库有一节叫「待确认事项（上线前必须解决）」，里面列了两条：一是公司利润率的可调边界（暂定 0.30–0.60）；二是 <code>src/price_calc.py</code> 里的个人利润公式<strong>是占位模型</strong>（用 <code>K=0.24</code> 做缩放），需要勘察到真实「利润测算」弹窗的逻辑之后替换成精确公式。</p>
+        </div>
+      </div>
 
       <p>把占位模型写在最显眼的位置，是一种工程上的诚实。任何接手这个仓库的人（包括三个月后的自己）都会知道：<strong>利润数字目前只能当作流程通路的证据，不能当作决策依据</strong>。相比之下，「假装公式是对的，等出问题再说」才是真正的技术债。</p>
 
-      <h2 id="deploy">部署与服务化</h2>
+      <h2 id="deploy">部署与服务化<a class="heading-anchor" href="#deploy" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>README 给的部署建议是阿里云轻量 2C2G 的 Ubuntu（香港或新加坡节点，需要先测试 <code>op.starmerx.com</code> 的可达性），用 <code>cron</code> 做每日定时，并配合 storageState 的过期提醒。这个规模的选择很务实：流程本身不重，重的是浏览器——而 Playwright 在 2G 内存上跑单实例是够的，前提是别并发开一堆页面。</p>
 
       <p>需要说明的是，完整的部署文档（<code>docs/DEPLOYMENT.md</code>）在仓库里标注为「待编写」。所以这一节只到「推荐什么机器、怎么定时」为止，再往下写就是编造了。</p>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>这个项目的所有设计选择，都可以用同一把尺子量：<strong>这一步出错的时候，我会不会知道？</strong>干运行让你知道、DOM 验收让你知道、有界二分让你知道、勘察截图让你知道、把占位模型写进 README 也让你知道。</p>
 

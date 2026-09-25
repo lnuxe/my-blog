@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -83,7 +83,7 @@
         </ol>
       </nav>
 
-      <h2 id="why">为什么「直接修」会翻车</h2>
+      <h2 id="why">为什么「直接修」会翻车<a class="heading-anchor" href="#why" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>README 里有一张表，把这类场景最常见的翻车方式列了出来。它值得原样复述一遍，因为每一行都对应一种真实发生过的事故：</p>
 
@@ -106,7 +106,7 @@
 
       <p>所以这个 skill 的第一句话就是它的立场：<strong>未对齐前不写修复代码。</strong></p>
 
-      <h2 id="four">动代码之前的四件事</h2>
+      <h2 id="four">动代码之前的四件事<a class="heading-anchor" href="#four" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>它把自己和「帮我修 bug 的 prompt」区分开来的方式，是强制四步：</p>
 
@@ -126,17 +126,38 @@
 
       <p>整条流程连起来是这样一条链：</p>
 
-      <div class="code-block"><pre><code>用户报缺陷
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>用户报缺陷
     → 选 businesses/&lt;slug&gt;/pack.md
     → cases-rag-index.md 按 biz / 症状 / 文件检索
     → 输出坑点对齐表（用户可纠正）
     → 代码 + git timeline 证明机制
     → 最小 diff
-    → 回填 cases.md</code></pre></div>
+    → 回填 cases.md</code></pre>
+      </div>
+
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 四步分诊：对齐在改代码之前，回填在合入之后</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  B["用户报缺陷"] --&gt; S1["① 选业务包：businesses/（你的 slug）/pack.md"]
+  S1 --&gt; S2["② 扫坑：先读 cases-rag-index.md，再打开命中的 Case"]
+  S2 --&gt; S3["③ 坑点对齐：把机制表摊给用户确认"]
+  S3 --&gt; Q{"用户确认了机制吗？"}
+  Q --&gt;|"纠正 / 补充"| S2
+  Q --&gt;|"确认"| S4["④ 窄修复：Scope Gate 四维 + 最小 diff"]
+  S4 --&gt; F["合入后回填 cases.md"]
+        </div></div>
+        <figcaption class="diagram-caption">第三步有一条回边：用户纠正之后要回到索引重新收窄方向。这条回边是整个流程里最便宜的一步——说一句话的成本，远低于改一份补丁。</figcaption>
+      </figure>
 
       <p>注意第三步和第六步的位置：<strong>对齐在改代码之前，回填在合入之后</strong>。前者防止修错，后者防止「同样的坑第三次出现」。</p>
 
-      <h2 id="align">坑点对齐表：这个 Skill 的核心动作</h2>
+      <h2 id="align">坑点对齐表：这个 Skill 的核心动作<a class="heading-anchor" href="#align" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>如果只能保留一个设计，我会留下坑点对齐。它的做法很朴素：Agent 在读完业务包和 Case 索引之后，<strong>不能直接开始改文件，而是要先给出一张「坑点对齐表」</strong>，把「我认为可能相关的机制」列出来交给人确认。人回一句「这个坑不存在 / 那个才是」，调查方向才被真正锁定。</p>
 
@@ -146,7 +167,7 @@
         <p>使用方式上，这个 skill 要求「直接说缺陷即可，不必先打指令」。README 里给的例子很生活化：「频道成员列表 Tab 右侧有一块灰的」「Android WebView 里按住说话没权限框」「这个是不是安全区的问题？」——注意最后一句，<strong>用户自己也在猜机制，而 skill 的作用正是接住这个猜测并验证它</strong>。</p>
       </blockquote>
 
-      <h2 id="rag">扫坑：先读索引，再打开 Case</h2>
+      <h2 id="rag">扫坑：先读索引，再打开 Case<a class="heading-anchor" href="#rag" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>第二步「扫坑」用的是和知识库一样的思路：<code>cases-rag-index.md</code> 是索引，<code>cases.md</code> 是正文，<strong>先读索引，再打开命中的那个 Case</strong>。索引支持按 biz、症状、文件三个维度检索。</p>
 
@@ -160,7 +181,7 @@
 
       <p>这里的价值不在于索引本身有多聪明，而在于它<strong>把「以前踩过的坑」变成了可以被检索的资产</strong>。没有这一步，每一次缺陷分诊都是从零开始；有了这一步，Agent 至少能站在「上次是怎么解决的」之上。这也解释了为什么流程的最后一步是回填——<strong>索引的质量完全取决于有没有人往里面写。</strong></p>
 
-      <h2 id="scope">窄修复与 Scope Gate</h2>
+      <h2 id="scope">窄修复与 Scope Gate<a class="heading-anchor" href="#scope" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>第四步叫「窄修复」，关键词是「窄」。它要求把改动范围在 <strong>Scope Gate 的四个维度</strong>上写清楚（具体模板在仓库的 <code>templates.md</code> 里，不同团队可以根据自己的流程调整），然后只提交最小 diff。</p>
 
@@ -168,7 +189,7 @@
 
       <p>同时还有一条证据要求：用<strong>代码 + git timeline 证明机制</strong>。也就是说，修复不能只靠「改完好了」，还要能说明「为什么是这一段代码导致的」——时间线上的提交记录、引入这个写法的那个 commit，都是机制的证据。这条要求把「试出来的修复」和「讲得清楚的修复」区分开了。</p>
 
-      <h2 id="layers">双层结构：全局 skill + 项目 overlay</h2>
+      <h2 id="layers">双层结构：全局 skill + 项目 overlay<a class="heading-anchor" href="#layers" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>这个 skill 被拆成两层，这是它能同时服务多个仓库的关键：</p>
 
@@ -188,7 +209,9 @@
 
       <p>仓库里的结构也是照这个原则组织的：</p>
 
-      <div class="code-block"><pre><code>flutter-defect-triage/
+      <div class="code-block" data-lang="tree">
+        <div class="code-bar"><span class="code-lang">tree</span></div>
+        <pre><code>flutter-defect-triage/
 ├── SKILL.md                          # 流程（agent 入口）
 ├── templates.md                      # Case / pack / 对齐表模板
 ├── cases-rag-index.md                # 先读索引
@@ -201,15 +224,16 @@
 ├── examples/project-overlay/         # 项目内 stub 范文
 ├── setup
 ├── VERSION
-└── LICENSE</code></pre></div>
+└── LICENSE</code></pre>
+      </div>
 
-      <h2 id="sample">虚构的 Harbor Club 与三类真坑</h2>
+      <h2 id="sample">虚构的 Harbor Club 与三类真坑<a class="heading-anchor" href="#sample" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库里的示例产品 <strong>Harbor Club 是编的</strong>，README 也如实标注了这一点：它用来演示三类真实存在的坑——<strong>Tab 收缩、数据路径分裂、宿主权限</strong>。接到真实仓库之后，这些示例 Case 应当被删除或替换。</p>
 
       <p>这个处理方式本身很值得借鉴：<strong>用虚构的业务外壳，承载真实的技术机制</strong>。它让 skill 可以直接开源，同时保证示例里的知识仍然有价值。相比之下，把真实 Case 脱敏后塞进开源仓库，几乎总会在某个角落漏出内部信息。</p>
 
-      <h2 id="onboard">接到真实项目上</h2>
+      <h2 id="onboard">接到真实项目上<a class="heading-anchor" href="#onboard" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>把一个真实仓库接进来是五步：</p>
 
@@ -223,19 +247,28 @@
 
       <p>第五步是这套东西真正的验收标准。一个缺陷分诊流程有没有用，不看它文档写得多整齐，而看第一个真实缺陷走完之后，<code>cases.md</code> 里有没有多出一条别人以后能用的记录。</p>
 
-      <h2 id="desens">脱敏：开源的是流程，不是业务包</h2>
+      <h2 id="desens">脱敏：开源的是流程，不是业务包<a class="heading-anchor" href="#desens" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>README 里有一段「脱敏说明」，交代了这个仓库是从一套生产环境的 Cursor skill 里<strong>抽出方法论</strong>后重写的，并明确列出了被移除的内容：真实产品名、活动 ID、AppId；内部 Git / 工单 / 流水线地址；真实协议名、道具 ID、支付通道；真实 Case、commit、MR、版本白名单；个人机器路径与公司邮箱。</p>
 
-      <p>它对使用者也提了同样的要求：<strong>不要</strong>把内部仓库地址、AppId、真实协议、工单号、员工路径写进你 fork 的公开仓库。留下来的只有可公开的机制：Flutter 布局收缩、展示路径 ≠ 数据路径、WebView 权限必须走宿主 bridge。</p>
+      <div class="note note-tip">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-bulb"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">脱敏要求</p>
+          <p>它对使用者也提了同样的要求：<strong>不要</strong>把内部仓库地址、AppId、真实协议、工单号、员工路径写进你 fork 的公开仓库。留下来的只有可公开的机制：Flutter 布局收缩、展示路径 ≠ 数据路径、WebView 权限必须走宿主 bridge。</p>
+        </div>
+      </div>
 
       <p>这条边界划得比技术细节更重要。很多「开源我们内部的 AI 工作流」的尝试，最后都变成了一个泄露源——不是因为有恶意，而是因为没人愿意删掉那些「看起来挺有用」的真实 Case。</p>
 
-      <h2 id="install">安装与升级</h2>
+      <h2 id="install">安装与升级<a class="heading-anchor" href="#install" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>Cursor 上的安装是一行：</p>
 
-      <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/lnuxe/flutter-defect-triage/main/setup | bash</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>curl -fsSL https://raw.githubusercontent.com/lnuxe/flutter-defect-triage/main/setup | bash</code></pre>
+      </div>
 
       <p>默认装到 <code>~/.cursor/skills/flutter-defect-triage/</code>，装完新开一轮对话即可。同一条 <code>setup</code> 还会在目录存在或已安装 Claude Code 时，把 skill 一并写到 <code>~/.claude/skills/flutter-defect-triage/</code>。也可以手动放置，路径对应关系是：</p>
 
@@ -254,11 +287,14 @@
 
       <p>有一个硬性要求：<code>SKILL.md</code> 必须在该目录的根上。升级则是常规的拉取：</p>
 
-      <div class="code-block"><pre><code>git -C ~/.cursor/skills/flutter-defect-triage pull --ff-only</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>git -C ~/.cursor/skills/flutter-defect-triage pull --ff-only</code></pre>
+      </div>
 
       <p>或者重新跑一次 <code>setup</code>。项目采用 MIT 许可。</p>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>这个 skill 值得学的地方，不在于它用了什么新技巧，而在于它<strong>把「人的经验」拆成了可检索、可对齐、可回填的三段</strong>：索引让经验可被找到，对齐表让假设可以被纠正，回填让这一次的修复变成下一次的起点。</p>
 

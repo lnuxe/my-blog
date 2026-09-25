@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -83,7 +83,7 @@
         </ol>
       </nav>
 
-      <h2 id="background">背景：99+ 条消息，和 24h / 48h 的考核</h2>
+      <h2 id="background">背景：99+ 条消息，和 24h / 48h 的考核<a class="heading-anchor" href="#background" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>先摆事实。这个 Demo 的起点是真实的运营压力：店铺客服<strong>每天 99+ 条客户消息</strong>，而平台的回复率考核挂在 <strong>24h / 48h</strong> 这两个时限上。消息量和时限一叠加，客服工作的性质就变了——它不再是「把问题解决掉」，而首先变成「在时限内把每一条都接住」。</p>
 
@@ -101,11 +101,13 @@
         </table>
       </div>
 
-      <h2 id="arch">全链路长什么样</h2>
+      <h2 id="arch">全链路长什么样<a class="heading-anchor" href="#arch" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库里已经跑通的链路是这样的：本地 Dify + RAG 知识库 → 客服聊天前端（Flask 后端代理）→ 浏览器自动化（UI-TARS）读取消息 → 调 Dify API 自动回复 → 回填。画成图就是：</p>
 
-      <div class="code-block"><pre><code>TikTok Shop 买家消息
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>TikTok Shop 买家消息
         │  (浏览器自动化读取)
         ▼
    UI-TARS / cs_web ──► Dify Chatflow API
@@ -117,11 +119,14 @@
                └─ 售前 → 知识库回答
                               │
                               ▼
-                       回复买家消息</code></pre></div>
+                       回复买家消息</code></pre>
+      </div>
 
       <p>对应到仓库目录：</p>
 
-      <div class="code-block"><pre><code>rag-cs-bot/
+      <div class="code-block" data-lang="tree">
+        <div class="code-bar"><span class="code-lang">tree</span></div>
+        <pre><code>rag-cs-bot/
 ├── README.md                 # 项目说明
 ├── 售前AI客服搭建操作指南.md   # Dify 侧完整搭建步骤
 ├── cs_web/                   # 客服聊天前端 + 后端代理
@@ -130,15 +135,20 @@
 ├── ui_tars_demo/             # UI-TARS 浏览器自动化 Demo
 │   ├── tars_demo.py          # 读取浏览器消息框 → 调 Dify API → 回填回复
 │   └── demo_msg.html         # 模拟消息框页面
-└── dify/                     # Dify 开源平台源码（langgenius/dify，已去除运行时产物）</code></pre></div>
+└── dify/                     # Dify 开源平台源码（langgenius/dify，已去除运行时产物）</code></pre>
+      </div>
 
-      <h2 id="boundary">核心设计：知识库只放售前</h2>
+      <h2 id="boundary">核心设计：知识库只放售前<a class="heading-anchor" href="#boundary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>整篇文章如果只留一段，应该是这一段：</p>
 
-      <blockquote>
-        <p><strong>知识库只放售前内容，售后内容不喂给 AI，从而强制售后转人工。</strong></p>
-      </blockquote>
+      <div class="note note-tip">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-bulb"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">核心设计</p>
+          <p><strong>知识库只放售前内容，售后内容不喂给 AI，从而强制售后转人工。</strong></p>
+        </div>
+      </div>
 
       <p>这句话是 README 里原样写着的「关键设计」。它的巧妙之处在于，它把一条业务规则（售后必须人工处理）翻译成了一条<strong>数据规则</strong>（知识库里没有售后内容）。而这个翻译带来三个连锁效果：</p>
 
@@ -148,7 +158,7 @@
         <li><strong>维护成本更低。</strong>售后政策会变，而且经常涉及金额与责任认定。把它们排除在知识库之外，等于把「谁来更新知识库」这个问题也一并简化了。</li>
       </ul>
 
-      <h2 id="prompt">为什么不能靠提示词阻止模型谈退款</h2>
+      <h2 id="prompt">为什么不能靠提示词阻止模型谈退款<a class="heading-anchor" href="#prompt" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>很自然会想到另一种做法：知识库照放，然后在提示词里写一句「遇到退款问题请转人工」。这条路在 Demo 里能跑，在生产里靠不住，理由有三层：</p>
 
@@ -167,9 +177,28 @@
 
       <p>关键区别在于：<strong>提示词是「建议」，知识库内容是「证据」</strong>。模型可以无视建议，但它没法凭空造出一份不存在的证据（造出来就是幻觉，而幻觉是能被检测和拦截的）。所以把约束放在数据层，比放在提示词层可靠得多——这就是「从机制上强制转人工」的含义。</p>
 
-      <h2 id="chatflow">意图分流：售前走 AI，售后转人工</h2>
+      <h2 id="chatflow">意图分流：售前走 AI，售后转人工<a class="heading-anchor" href="#chatflow" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>分流发生在 Dify 侧。README 的操作指南里，这一步被定义为一个「售前 AI / 售后人工」的 Chatflow 工作流：先做意图识别，然后按结果分叉——售前走向知识库检索，售后直接转人工。</p>
+
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 意图分流：售前走 AI，售后转人工</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  M["买家消息"] --&gt; T["UI-TARS 读取浏览器消息框"]
+  T --&gt; W["cs_web/app.py（Flask 代理）"]
+  W --&gt; D{"Dify Chatflow：意图识别"}
+  D --&gt;|"售前：产品 / 发货 / 物流 / 价格 / 尺码"| K["知识库检索（RAG）"]
+  K --&gt; A["LLM 生成回答"]
+  D --&gt;|"售后：退换 / 退款 / 投诉 / 赔偿"| H["转人工，不喂给 AI"]
+  A --&gt; C["clean_answer()：剥离思考过程"]
+  C --&gt; R["回填消息框，回复买家"]
+        </div></div>
+        <figcaption class="diagram-caption">分流发生在 Dify 的 Chatflow 里。售后那条线不是“AI 答得差一点”，而是根本不进检索：知识库里没有售后内容，模型拿不到任何可以拿来承诺的条款。</figcaption>
+      </figure>
 
       <p>这一层与知识库边界是<strong>两道独立的闸门</strong>，而不是一道：</p>
 
@@ -185,22 +214,42 @@
         </table>
       </div>
 
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 2 · 两道闸门：任何一次售后问询都要连闯两关</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  Q["售后类问询"] --&gt; G1{"闸门 1：意图识别分流"}
+  G1 --&gt;|"判成售后"| H["转人工"]
+  G1 --&gt;|"误判成售前"| G2{"闸门 2：知识库里有没有售后条款"}
+  G2 --&gt;|"没有（设计如此）"| N["检索不到可承诺的条款"]
+  N --&gt; H
+  G2 --&gt;|"有（不该出现）"| BAD["模型引用条款并给出承诺"]
+        </div></div>
+        <figcaption class="diagram-caption">第一道是 Chatflow 的判断节点，第二道是语料本身。冗余是有意的 —— 只有两道同时失效，一次售后问询才会变成一句 AI 承诺。</figcaption>
+      </figure>
+
       <p>两道闸门同时存在，意味着任何一次售后相关的问询都要连闯两关才会变成一句「AI 承诺」。这种冗余在客服场景里是值得的：<strong>省下的每一次误答，都比多花的那点算力贵。</strong></p>
 
-      <h2 id="clean">剥掉思考过程：clean_answer()</h2>
+      <h2 id="clean">剥掉思考过程：clean_answer()<a class="heading-anchor" href="#clean" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>链路里有一个很接地气的问题：接进来的推理模型（DeepSeek 一类）会把思考过程一起返回，格式通常是 <code>...&lt;/think&gt;回答</code> 或 <code>...&lt;/thinking&gt;回答</code>。如果不处理，客户看到的回复里会带着一大段自言自语。</p>
 
       <p><code>cs_web/app.py</code> 里的 <code>clean_answer()</code> 用一个正则把这段剥掉，只保留最终回复，两种格式都覆盖。这一环之所以必须由后端代理来做，而不是在前端过滤，是因为代理层是链路上唯一一个「所有回复都必须经过」的位置：</p>
 
-      <div class="code-block"><pre><code>买家消息 → cs_web/app.py（Flask 代理）
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>买家消息 → cs_web/app.py（Flask 代理）
               ├── 转发到 Dify API
               ├── clean_answer()：剥离思考过程
-              └── 返回干净回复</code></pre></div>
+              └── 返回干净回复</code></pre>
+      </div>
 
       <p>把清洗放在必经之路上，而不是放在每个调用点，是这类系统能长期维护的关键。否则每加一个新的入口，都要重新记得「这里也要去一次思考过程」。</p>
 
-      <h2 id="tars">浏览器自动化那一环</h2>
+      <h2 id="tars">浏览器自动化那一环<a class="heading-anchor" href="#tars" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p><code>ui_tars_demo/tars_demo.py</code> 负责把 AI 的回复送回给买家：读取浏览器消息框中的买家消息 → 调 Dify API 生成回答 → 回填到消息框。仓库里还带了一个 <code>demo_msg.html</code> 作为模拟消息框页面，方便在没有真实店铺的情况下把这一环跑通。</p>
 
@@ -210,7 +259,7 @@
         <p>README 的声明里写得很清楚：本项目是技术 Demo，生产环境接入 TikTok 需使用官方开放平台 API 或桥接服务。浏览器自动化适合验证链路，不适合当作长期的生产接入方式。</p>
       </blockquote>
 
-      <h2 id="index">索引卡住的坑：连接池耗尽</h2>
+      <h2 id="index">索引卡住的坑：连接池耗尽<a class="heading-anchor" href="#index" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库专门留了一节「关键踩坑经验」给二次开发的人，其中一条很有代表性：<strong>Dify 知识库索引会因 SQLAlchemy 连接池耗尽而停滞，需要控制并发、串行处理文档。</strong></p>
 
@@ -224,13 +273,16 @@
 
       <p>另外两条踩坑经验也一并记在这里：一是思考过程的剥离（见上一节），二是「知识库只放售前」这条核心手段本身。三条经验合起来看，恰好覆盖了这类项目最容易出问题的三个位置：模型输出、基础设施、业务边界。</p>
 
-      <h2 id="ops">跑起来需要什么</h2>
+      <h2 id="ops">跑起来需要什么<a class="heading-anchor" href="#ops" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>本地起 Dify 用的是官方 compose：</p>
 
-      <div class="code-block"><pre><code>cd dify/docker
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>cd dify/docker
 docker compose up -d
-# 访问 http://localhost:80，完成管理员初始化</code></pre></div>
+# 访问 http://localhost:80，完成管理员初始化</code></pre>
+      </div>
 
       <p>然后按操作指南接入模型（DeepSeek / 通义千问 / 智谱）、建售前知识库、搭「售前 AI / 售后人工」分流的 Chatflow。前端代理需要两个环境变量：</p>
 
@@ -246,14 +298,17 @@ docker compose up -d
         </table>
       </div>
 
-      <div class="code-block"><pre><code>cd cs_web
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>cd cs_web
 pip install -r requirements.txt   # flask, requests
 python3 app.py
-# 访问 http://localhost:8000</code></pre></div>
+# 访问 http://localhost:8000</code></pre>
+      </div>
 
       <p>仓库里的 <code>dify/</code> 目录是 <a href="https://github.com/langgenius/dify">langgenius/dify</a> 的开源平台源码（保留其原始 LICENSE），已经去掉了运行时产物，用于本地私有化部署。客服 Demo 部分与 Dify 源码各自遵循原项目的许可。</p>
 
-      <h2 id="limit">这套方案的边界</h2>
+      <h2 id="limit">这套方案的边界<a class="heading-anchor" href="#limit" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>把它当 Demo 看，它解决了一个真问题；把它当生产方案看，还有几件事要先想清楚：</p>
 
@@ -264,7 +319,7 @@ python3 app.py
         <li><strong>考核指标的口径。</strong>24h / 48h 回复率算的是「有没有回」，而不是「回得对不对」——用自动化满足前者的时候，别把后者丢掉。</li>
       </ul>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p><code>rag-cs-bot</code> 最值得借鉴的，不是「用 Dify 接了 RAG」这个动作，而是它对<strong>能力边界</strong>的处理方式：不是告诉模型「这件事你不能做」，而是让它在数据里根本找不到做这件事的材料。前者是请求，后者是机制。</p>
 

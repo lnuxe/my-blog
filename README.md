@@ -5,10 +5,12 @@
 站点主人在 GitHub 上是 [@lnuxe](https://github.com/lnuxe)，文章全部写自真实跑过的项目（浏览器自动化、Agent 技能包、RAG、Flutter 多端）。
 
 - 编码：全站 UTF-8（无 BOM），`lang="zh-CN"`
-- 外部请求：**零**（无 CDN、无 Web Font、无外部图片、无分析脚本）。首页会加载两个**本地自带**的第三方库，见「第三方库」一节——文件在仓库里，不产生任何外部网络请求
+- 外部请求：**零**（无 CDN、无外部字体、无外部图片、无分析脚本）。站点会用到的第三方库与字体（three.js / Atropos / mermaid / Inter / JetBrains Mono）全部**本地自带**，文件在仓库里，见 [`assets/vendor/LICENSES.md`](assets/vendor/LICENSES.md)
 - 外链策略：正文与项目页允许 `<a href="https://…">` 形式的普通超链接（如 GitHub），但**不允许任何外部资源引用**
 - 链接：站内链接全部为相对路径，可部署在域名根目录，也可部署在任意子目录下
 - 排版：正文 `line-height` ≥ 1.75，正文最大宽度 `--content-width: 688px`（内容宽 640px，约 40 汉字/行）。完整规则见 [DESIGN.md](DESIGN.md)，可用 `tools/audit_design.py` 自动验收
+- 字体：拉丁自持 **Inter**、代码自持 **JetBrains Mono**（各 48 KB / 40 KB 的 latin 子集，`font-display: swap`）；**标题仍是系统宋体栈**，中文一律回退系统 CJK。策略见 DESIGN.md 第 19 节
+- 图表：文章页可用 **mermaid**（本地自带，3.3 MB，**只在含图表的页面、且滚到图表附近才加载**），支持亮暗主题配色、复制源码与点图放大的灯箱；无 JS 时降级为带语言标识的源码代码块
 - 无障碍：按 WCAG 2.2 AA 验收（对比度 ≥4.5:1、可点击目标 ≥24×24、焦点指示器 2px）
 
 ---
@@ -33,11 +35,12 @@ blog/
 ├── assets/
 │   ├── style.css         # 全站唯一的样式表（含设计令牌、深色主题、打印样式）
 │   ├── main.js           # 全站唯一的脚本（主题、导航、搜索、筛选、复制代码等）
-│   ├── icons.svg         # 图标 sprite（Tabler，22 个 symbol，`<use>` 引用，无外部请求）
+│   ├── icons.svg         # 图标 sprite（Tabler，27 个 symbol，`<use>` 引用，无外部请求）
 │   ├── cards3d.js        # 卡片景深（Atropos 初始化；仅 index / projects 加载）
 │   ├── hero3d.js         # 首屏星图背景（three.js；装饰性，可缺席）
 │   ├── avatar.jpg        # 头像原图（页面里用的是内联 SVG 版）
-│   └── vendor/           # 本地自带第三方库：three.min.js / atropos.min.js / atropos.min.css（LICENSES.md 记账）
+│   ├── fonts/            # Inter / JetBrains Mono（latin 子集，OFL，无外部请求）
+│   └── vendor/           # 本地自带第三方库：three.min.js / atropos.* / mermaid.min.js（LICENSES.md 记账）
 └── posts/
     ├── wechat-4x-db-export.html              # 微信 4.x 聊天记录导出（LLDB / PBKDF2 / wxecho）
     ├── index-first-filesystem-rag.html       # Index-first 文件系统 RAG 的四步路由
@@ -128,12 +131,42 @@ posts/playwright-selector-notes.html
 
 <blockquote><p>引用。</p></blockquote>
 
-<div class="code-block"><pre><code>代码（HTML 实体需转义：&amp;lt; &amp;gt; &amp;amp;）</code></pre></div>
+<!-- 代码块：顶栏的语言名写在这颗 .code-lang 里，data-lang 给复制按钮的无障碍标签用 -->
+<div class="code-block" data-lang="bash">
+  <div class="code-bar"><span class="code-lang">bash</span></div>
+  <pre><code>代码（HTML 实体需转义：&amp;lt; &amp;gt; &amp;amp;）</code></pre>
+</div>
 
 <div class="table-scroll"><table>...</table></div>   <!-- 表格，窄屏可横向滚动 -->
 
+<!-- 提示块：四种语义，类的选择见 DESIGN.md 第 20.7 节 -->
+<div class="note note-warning">
+  <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-alert-triangle"></use></svg></span>
+  <div class="note-body">
+    <p class="note-title">注意</p>
+    <p>正文。</p>
+  </div>
+</div>
+
+<!-- 图表：源码就写在 .mermaid 里（无 JS 时按代码块显示，所以换行与缩进要保留） -->
+<figure class="diagram">
+  <div class="diagram-bar">
+    <span class="diagram-lang">mermaid</span>
+    <span class="diagram-title">图 1 · 标题</span>
+    <span class="diagram-tools" data-diagram-tools hidden></span>
+  </div>
+  <div class="diagram-body"><div class="mermaid">flowchart TD
+  A["节点"] --&gt; B["节点"]
+  </div></div>
+  <figcaption class="diagram-caption">图注。</figcaption>
+</figure>
+
 <nav class="toc" aria-label="本文目录">...</nav>      <!-- 可选的目录 -->
 ```
+
+> 带图表的页面还要在 `<body>` 上加一条
+> `data-mermaid-src="../assets/vendor/mermaid.min.js"`（根目录页面写 `assets/…`），
+> 图表的懒加载脚本靠它解析相对路径。
 
 ### 5. 更新文章翻页链接
 
@@ -248,7 +281,9 @@ server {
 | 移动端导航 | 按钮切换、点击链接后自动收起、`Esc` 关闭、点击外部关闭、拉宽窗口自动复位 |
 | 首页搜索 | 按空格分词，多关键词取「与」，匹配标题 / 标签 / 摘要 / 日期；`/` 键快速聚焦 |
 | 标签筛选 | 首页筛选按钮与标签页分组共用；支持 `?tag=xxx` 直接跳转 |
-| 复制代码 | 自动为 `.prose pre` 添加复制按钮，优先用 `navigator.clipboard`，失败时回退 |
+| 复制代码 | 给每个 `.code-block` 的顶栏补一颗复制按钮（语言名来自 HTML 里写死的 `.code-lang`），优先用 `navigator.clipboard`，失败时回退 |
+| 图表（mermaid） | 只在页面含 `.diagram` 时启用；第一张图进入视口 400px 内才插入 `<script>`；主题切换后重画 |
+| 图表灯箱 | 点图表或「放大查看」打开全屏对话框：±缩放 / 重置 / 拖动平移 / Esc 关闭，焦点锁在对话框内 |
 | 阅读进度 / 返回顶部 | 文章页顶部进度条，滚动超过 600px 显示返回顶部按钮 |
 | 导航高亮 | 根据当前文件名给导航项加 `aria-current="page"` |
 
