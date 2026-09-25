@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -82,7 +82,7 @@
         </ol>
       </nav>
 
-      <h2 id="why">为什么先解决「导出」这件事</h2>
+      <h2 id="why">为什么先解决「导出」这件事<a class="heading-anchor" href="#why" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>先说清楚 <code>pickled-fish</code>（泡菜鱼）是什么。它是跑在 Cursor Agent 上的技能包，仓库里写着三块已经落地的能力：把本人 Mac 微信的聊天导出成可读的 <code>chat.txt</code>、对整段聊天做时间线与话轮分析、再按问题从本地知识包里挑理论和话术。它的口号是「你听得到吗 · 先看懂，再开口」——注意顺序，是<strong>先看懂</strong>。</p>
 
@@ -96,7 +96,7 @@
 
       <p>所以导出管线不是附属功能，而是整个技能包的地基：没有 <code>chat.txt</code>，后面的分析都只能退化成「看着几张图猜」。</p>
 
-      <h2 id="version">版本前提：WeChat 4.1.10+ 与 db_storage</h2>
+      <h2 id="version">版本前提：WeChat 4.1.10+ 与 db_storage<a class="heading-anchor" href="#version" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>微信从 4.x 开始，macOS 版的本地数据被组织进一个叫 <code>db_storage</code> 的目录，消息按业务拆成多个 SQLite 数据库，仓库 README 里写的就是 <code>db_storage/*.db</code>，其中消息主库是 <code>db_storage/message_*.db</code>。</p>
 
@@ -120,7 +120,7 @@
         <p>先确认版本，再动手。这条规则在逆向相关的工作里几乎总是成立：同一个思路换个版本号，成功率可能从「十分钟搞定」变成「一整天白干」。仓库里明确标注的支持范围是 WeChat 4.1.10+，超出这个范围就不是「照着做」的问题了。</p>
       </blockquote>
 
-      <h2 id="key">密钥从哪来：用 LLDB 抓 passphrase</h2>
+      <h2 id="key">密钥从哪来：用 LLDB 抓 passphrase<a class="heading-anchor" href="#key" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>数据库是加密的，那就得有密钥；密钥不能靠猜——一个正常强度的 passphrase 没有任何爆破价值。剩下的路只有一条：<strong>微信自己在运行时会用到它，那就去它用到的地方拿</strong>。</p>
 
@@ -143,7 +143,7 @@
 
       <p>需要提醒的是，这一步涉及系统层面的调试权限，具体需要在系统里开哪些设置、工具需要什么参数，<strong>以 <code>wcdb-key-tool</code> 自己的说明为准</strong>——本文只讲它在整条管线里的位置，不复述另一份会过期的文档。</p>
 
-      <h2 id="pbkdf2">passphrase 不是 key：PBKDF2 在中间做了什么</h2>
+      <h2 id="pbkdf2">passphrase 不是 key：PBKDF2 在中间做了什么<a class="heading-anchor" href="#pbkdf2" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>拿到 passphrase 就以为万事大吉，是这条管线里最容易犯的错。真实情况是：<strong>passphrase 是原料，不是密钥</strong>。数据库解密需要的是从 passphrase 派生出来的 key，中间的派生函数就是 PBKDF2。</p>
 
@@ -164,7 +164,7 @@
 
       <p>这个区分在实际操作中有个很直接的后果：<strong>只抄走 passphrase 而不复现派生参数，是打不开库的</strong>。加盐值、迭代次数、输出长度，任何一个对不上，派生出来的 key 就是另一串字节。所以这部分工作最好交给已经封装好的工具去做，而不是自己手搓一遍——手搓的版本会在微信升级后静默失效，而且失效时表现出的症状（「库打不开」）和密钥错误完全一样，非常难排查。</p>
 
-      <h2 id="decrypt">解密 db_storage/*.db</h2>
+      <h2 id="decrypt">解密 db_storage/*.db<a class="heading-anchor" href="#decrypt" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>派生出的 key 交给解密步骤，逐个打开 <code>db_storage</code> 下的库，得到可以直接用 SQLite 查询的副本。这一段的工程要点不是算法，而是纪律：</p>
 
@@ -174,23 +174,50 @@
         <li><strong>把密钥当密码对待。</strong>仓库的边界说明里专门写了一句：密钥、<code>chat.txt</code> 和自定义隐私包都不要提交到公开仓库。这句话比任何技术细节都重要。</li>
       </ul>
 
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 从进程内存到 chat.txt：微信 4.x 导出管线</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  A["macOS 微信 4.1.10+（运行中）"] --&gt; B["wcdb-key-tool：LLDB 附加到微信进程"]
+  B --&gt; C["passphrase：进程内存里的口令材料"]
+  C --&gt; D["PBKDF2：加盐 + 多次迭代"]
+  D --&gt; E["key"]
+  E --&gt; F["逐个解密 db_storage/*.db"]
+  F --&gt; G["明文 SQLite 副本"]
+  G --&gt; H["wxecho export 昵称"]
+  H --&gt; I["chat.txt / json / csv"]
+        </div></div>
+        <figcaption class="diagram-caption">整条管线里，只有密钥那一段是难点：passphrase 要从进程内存里取，再按同一套参数走一遍 PBKDF2 才是 key。解密只读原库、只产出新文件；导出只负责把数据还原成人能读的样子，不掺杂任何判断。</figcaption>
+      </figure>
+
       <p>解出来的库就是标准的 SQLite：联系人、会话、消息各在自己的表里，用任意客户端都能查。到这一步，「可检索」已经实现了一半，但它仍然不方便给人看——你不可能指望自己每次都用 SQL 去回忆一段对话。所以还需要最后一步。</p>
 
-      <h2 id="export">导出成 chat.txt</h2>
+      <h2 id="export">导出成 chat.txt<a class="heading-anchor" href="#export" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>最后一步由 <code>@walkerch/wxecho</code> 完成。仓库里给出的用法就一条命令：</p>
 
-      <div class="code-block"><pre><code>wxecho export "昵称"</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>wxecho export "昵称"</code></pre>
+      </div>
 
       <p>执行之后，会在下载目录下按联系人分文件夹写出结果：</p>
 
-      <div class="code-block"><pre><code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code></pre></div>
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>~/Downloads/wxecho/&lt;联系人&gt;/chat.txt</code></pre>
+      </div>
 
       <p>除了纯文本 <code>chat.txt</code>，管线里也支持 json 与 csv 形式——文本适合人和 Agent 直接读，结构化格式适合自己写脚本做统计。子命令和参数以工具自身的帮助信息为准，这里只固定这条最短路径。</p>
 
       <p>把整条链路连起来看，数据是这样流动的：</p>
 
-      <div class="code-block"><pre><code>Mac WeChat 4.x
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>Mac WeChat 4.x
   db_storage/message_*.db
         │  wechat-mac-export
         │  (wcdb-key-tool → 明文库 → wxecho)
@@ -203,11 +230,12 @@
         │  选 ≤2 个 pack
         ▼
   1–2 个关键点 + 可发送原文或「先不发」
-  packs_used: [...]</code></pre></div>
+  packs_used: [...]</code></pre>
+      </div>
 
       <p>注意这条链路里有一个容易被忽略的设计：<strong>导出与分析是分开的两件事</strong>。导出只负责把数据还原成人能读的样子，不掺杂任何判断；判断留给后面的分析环节。这样做的好处是，当分析结论可疑时，你可以回到原文核对，而不是怀疑「是不是导出的时候就丢东西了」。</p>
 
-      <h2 id="pipeline">导出来之后：整段分析，而不是截图分析</h2>
+      <h2 id="pipeline">导出来之后：整段分析，而不是截图分析<a class="heading-anchor" href="#pipeline" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p><code>pickled-fish</code> 的中间一环是 <code>skills/qingsheng/references/local-chat-pipeline.md</code>。它处理的对象是「上万行导出文本」，做的是时间线、话轮、冷场与转折点的统计。这一步的价值，用一句话概括就是：<strong>把「我感觉最近不太对」变成「第 N 天开始，回复间隔的中位数变了」</strong>。</p>
 
@@ -226,16 +254,21 @@
         <p>这套流程里最反直觉、但最值得学的一点是：它把「不下结论」也当成一个合法输出。「先不发」是可以被交付的答案之一——这在情感场景里比在技术场景里更需要被显式支持。</p>
       </blockquote>
 
-      <h2 id="install">把它装起来</h2>
+      <h2 id="install">把它装起来<a class="heading-anchor" href="#install" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>整包装进 Cursor 只要两步：</p>
 
-      <div class="code-block"><pre><code>git clone https://github.com/lnuxe/pickled-fish.git ~/.cursor/skills/pickled-fish
-bash ~/.cursor/skills/pickled-fish/scripts/install-skills.sh</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>git clone https://github.com/lnuxe/pickled-fish.git ~/.cursor/skills/pickled-fish
+bash ~/.cursor/skills/pickled-fish/scripts/install-skills.sh</code></pre>
+      </div>
 
       <p><code>install-skills.sh</code> 会把四个入口软链到 <code>~/.cursor/skills/</code>：<code>pickled-fish</code>、<code>wechat-mac-export</code>、<code>qingsheng</code>、<code>kb-rag</code>。仓库的目录结构大致是这样：</p>
 
-      <div class="code-block"><pre><code>pickled-fish/
+      <div class="code-block" data-lang="tree">
+        <div class="code-bar"><span class="code-lang">tree</span></div>
+        <pre><code>pickled-fish/
 ├── SKILL.md                 # 总控：导出 → 选库 → 分析
 ├── knowledge/
 │   ├── REGISTRY.md          # 路由表（意图 → pack id）
@@ -248,11 +281,12 @@ bash ~/.cursor/skills/pickled-fish/scripts/install-skills.sh</code></pre></div>
 │   └── qingsheng/           # 中文恋爱实操 + local-chat 管线
 └── scripts/
     ├── install-skills.sh    # 软链到 ~/.cursor/skills/
-    └── add-pack.sh          # git/本地目录装进 custom/</code></pre></div>
+    └── add-pack.sh          # git/本地目录装进 custom/</code></pre>
+      </div>
 
       <p>导出那一步的本机依赖有三个：<code>@walkerch/wxecho</code>、<code>wcdb-key-tool</code>，以及 Python 3。前两个负责解密和导出，Python 负责把库里的内容整理成文本。想换一套自己的笔记，用 <code>scripts/add-pack.sh</code> 把它装进 <code>knowledge/custom/&lt;id&gt;</code> 即可。</p>
 
-      <h2 id="boundary">边界：这件事能做什么，不能做什么</h2>
+      <h2 id="boundary">边界：这件事能做什么，不能做什么<a class="heading-anchor" href="#boundary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库里有一份 <code>DISCLAIMER.md</code>，内容很短，但三条都必须先读：<strong>仅限本人数据、非诊疗、禁止骚扰</strong>。把它翻译成工程语言，就是下面三条约束：</p>
 
@@ -269,9 +303,15 @@ bash ~/.cursor/skills/pickled-fish/scripts/install-skills.sh</code></pre></div>
         </table>
       </div>
 
-      <p>还有一条工程纪律：密钥、<code>chat.txt</code>、自定义隐私包都不要提交公开仓库。<code>knowledge/custom/</code> 之所以默认不进公开 git，就是因为它存放的是私有的东西——设计上已经替你把这条线划好了，别自己把它越过去。</p>
+      <div class="note note-warning">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-alert-triangle"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">工程纪律</p>
+          <p>还有一条工程纪律：密钥、<code>chat.txt</code>、自定义隐私包都不要提交公开仓库。<code>knowledge/custom/</code> 之所以默认不进公开 git，就是因为它存放的是私有的东西——设计上已经替你把这条线划好了，别自己把它越过去。</p>
+        </div>
+      </div>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>这条导出管线的全部复杂度，都集中在「拿到能用的密钥」这一步：用 LLDB 从进程里取 passphrase，再按同一套参数走 PBKDF2 派生 key，最后逐个解密 <code>db_storage/*.db</code>，交给 <code>wxecho</code> 写出 <code>chat.txt</code>。密钥之后的每一步，其实都是普通的工程活。</p>
 

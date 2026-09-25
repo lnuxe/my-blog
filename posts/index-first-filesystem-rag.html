@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -83,7 +83,7 @@
         </ol>
       </nav>
 
-      <h2 id="scale">先看规模：个人知识库到底有多大</h2>
+      <h2 id="scale">先看规模：个人知识库到底有多大<a class="heading-anchor" href="#scale" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>把「RAG」当成一个不可分割的技术栈，是很多过度工程的起点。它其实由几件事组成：文本切分、向量化、向量存储、相似度检索、结果重排。这些组件在<strong>大规模、多来源、异构</strong>的场景里是必需品；而个人知识库的画像恰好相反：</p>
 
@@ -96,7 +96,7 @@
 
       <p>在这样的规模上，「全量读一遍」和「精准检索一段」之间的差别，往往只是几秒钟和几毛钱。真正拉开差距的不是检索速度，而是<strong>检索结果能不能解释、能不能复现</strong>。</p>
 
-      <h2 id="cost">向量库的四个隐性成本</h2>
+      <h2 id="cost">向量库的四个隐性成本<a class="heading-anchor" href="#cost" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>不是说向量库不好，而是它在小规模下要额外付出四笔账：</p>
 
@@ -116,25 +116,46 @@
 
       <p>反过来，文件系统检索的成本几乎为零，而且有一个向量库很难做到的特性：<strong>每一条检索结果都可以被完整复述</strong>。是哪个文件、哪一行、用什么命令找到的——全部可复现。</p>
 
-      <h2 id="foursteps">四步路由：Index-first 长什么样</h2>
+      <h2 id="foursteps">四步路由：Index-first 长什么样<a class="heading-anchor" href="#foursteps" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>Index-first 的核心思想是「先索引，再展开」——和网页从目录点到正文的过程一样：</p>
 
-      <div class="code-block"><pre><code>REGISTRY.md   ← 先看路由表：这个问题该找哪个 pack
+      <div class="code-block" data-lang="text">
+        <div class="code-bar"><span class="code-lang">text</span></div>
+        <pre><code>REGISTRY.md   ← 先看路由表：这个问题该找哪个 pack
     ↓
 PACK.md       ← 打开那个包的门牌：它覆盖什么、不覆盖什么
     ↓
 rg 关键词      ← 在包里用文本搜索定位到候选段落
     ↓
-Read 段落      ← 只读命中的那几段，而不是整个文件</code></pre></div>
+Read 段落      ← 只读命中的那几段，而不是整个文件</code></pre>
+      </div>
 
       <p>四步的关键在于<strong>每一步都在缩小范围</strong>。到第三步时，搜索空间已经从「所有笔记」缩到「一个包」；到第四步时，读进上下文的只剩几段。整个过程中，上下文预算花在「确认找到的东西对不对」上，而不是花在「把可能的都搬进来」上。</p>
 
       <blockquote>
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 四步检索回路，以及同轮最多深读 2 个 pack 的硬约束</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  Q["问题"] --&gt; R1["REGISTRY.md：按意图选 pack"]
+  R1 --&gt; R2["PACK.md：确认覆盖什么、不覆盖什么"]
+  R2 --&gt; R3["rg 关键词：在包内定位候选段落"]
+  R3 --&gt; R4["Read：只读命中的那几段"]
+  R4 --&gt; C{"本轮深读的 pack 数"}
+  C --&gt;|"未满 2 个"| R1
+  C --&gt;|"已满 2 个（上限）"| OUT["输出 1 到 2 个关键点，标注 packs_used"]
+        </div></div>
+        <figcaption class="diagram-caption">每一跳都在缩小范围：从“所有笔记”收到“一个包”，再收到“几段”。回路不是可以一直转的 —— 深读到第 2 个 pack 就必须停下来作答，并写出 packs_used。</figcaption>
+      </figure>
+
         <p>这套流程在仓库里被描述为 progressive disclosure（渐进式展开）：<strong>先给索引，再给正文</strong>。它同时解决两个问题——检索精度和上下文预算。而这两者在向量方案里经常是互相拉扯的：提高召回就得放进更多切片，放进更多切片就更难判断哪一条才真正相关。</p>
       </blockquote>
 
-      <h2 id="registry">REGISTRY.md：一张路由表，不是索引</h2>
+      <h2 id="registry">REGISTRY.md：一张路由表，不是索引<a class="heading-anchor" href="#registry" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p><code>knowledge/REGISTRY.md</code> 是整套机制的第一入口，它的定位很明确：<strong>意图 → pack id 的路由表</strong>。它不是把所有文档列一遍的目录，而是回答「遇到这类问题，去哪个包里找」。</p>
 
@@ -159,17 +180,23 @@ Read 段落      ← 只读命中的那几段，而不是整个文件</code></pr
 
       <p>这张表的存在意味着两件事。第一，检索的<strong>第一跳是确定性的</strong>：不是「猜哪个文档相似」，而是「按意图查表」。第二，路由表是<strong>可维护的</strong>：加一个知识包时，只需要在表里加一行，而不是重新训练或重新构建任何东西。</p>
 
-      <h2 id="pack">PACK.md：一个包的边界声明</h2>
+      <h2 id="pack">PACK.md：一个包的边界声明<a class="heading-anchor" href="#pack" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>第二步是打开 <code>PACK.md</code>。设计意图上，它是每个知识包的门牌，回答三个问题：<strong>这个包覆盖什么、不覆盖什么、入口文件在哪</strong>。Agent 先读完门牌，再决定要不要真的展开里面的内容——这正是一次「先索引，后正文」的展开。</p>
 
       <p>「不覆盖什么」这一条尤其重要。知识库真正的风险从来不是「找不到」，而是「找到了不该用的那一套」。一个包如果只声明自己覆盖什么，Agent 就会默认它在越界的问题上也有发言权；把边界写清楚，越界时才有「没有依据」这个正确答案。</p>
 
       <blockquote>
-        <p>这里要老实说明一句：<code>PACK.md</code> 的字段与模板，各包可以有自己的写法，具体以仓库里对应 pack 的实际内容为准。本文描述的是它在四步路由里承担的角色，不是一份可以直接照抄的 schema。</p>
+        <div class="note note-info">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-info-circle"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">说明</p>
+          <p>这里要老实说明一句：<code>PACK.md</code> 的字段与模板，各包可以有自己的写法，具体以仓库里对应 pack 的实际内容为准。本文描述的是它在四步路由里承担的角色，不是一份可以直接照抄的 schema。</p>
+        </div>
+      </div>
       </blockquote>
 
-      <h2 id="rg">为什么 rg 够用，而且比相似度更好用</h2>
+      <h2 id="rg">为什么 rg 够用，而且比相似度更好用<a class="heading-anchor" href="#rg" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>第三步是 <code>rg</code>——ripgrep，一个文本搜索工具。在「个人知识库」这个规模上，它比向量检索有三个明确优势：</p>
 
@@ -190,7 +217,7 @@ Read 段落      ← 只读命中的那几段，而不是整个文件</code></pr
 
       <p>它的短板也很清楚：<strong>依赖关键词命中</strong>。所以在这套设计里，关键词不是「碰运气」，而是由前两步兜住的——REGISTRY 已经把范围收到一个包里，PACK.md 又告诉你包里的术语大概长什么样，剩下的搜索在一个小得多的空间里做，命中率自然完全不同。换句话说，<strong>Index-first 把语义理解交给了前两步的人工结构，把最后一步留给确定性的文本匹配。</strong></p>
 
-      <h2 id="budget">预算控制：同轮最多深读 2 个 pack</h2>
+      <h2 id="budget">预算控制：同轮最多深读 2 个 pack<a class="heading-anchor" href="#budget" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>第四步是 <code>Read</code>——真正把命中的段落读进上下文。这里有一条硬约束：<strong>同一轮里最多深读 2 个 pack，并且必须标注 <code>packs_used</code></strong>。</p>
 
@@ -204,7 +231,7 @@ Read 段落      ← 只读命中的那几段，而不是整个文件</code></pr
 
       <p>把这条约束和四步路由放在一起看，会发现整套设计的取向非常一致：<strong>宁可少读一点、读准一点，也不要读多、读杂。</strong></p>
 
-      <h2 id="packs">已经捆好的知识包</h2>
+      <h2 id="packs">已经捆好的知识包<a class="heading-anchor" href="#packs" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库里预设了一批 MIT 许可的知识包，放在 <code>knowledge/packs/</code> 下，路由表直接指向它们：</p>
 
@@ -230,18 +257,21 @@ Read 段落      ← 只读命中的那几段，而不是整个文件</code></pr
 
       <p>注意 <code>qingsheng</code> 不在 <code>knowledge/packs/</code> 下，而在 <code>skills/</code> 下——它是技能而不是知识包，但同样可以被路由表指向。这个细节说明路由表的粒度是<strong>「可以独立展开的单元」</strong>，而不是「目录树的位置」。此外还有一批可选的远端大库，出于体积考虑没有默认 vendoring，在 <code>REGISTRY.md</code> 的 D 节里列出。</p>
 
-      <h2 id="extend">换成我自己的笔记</h2>
+      <h2 id="extend">换成我自己的笔记<a class="heading-anchor" href="#extend" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>要换成自己的知识库，不需要改代码，只需装一个包：</p>
 
-      <div class="code-block"><pre><code>bash ~/.cursor/skills/pickled-fish/scripts/add-pack.sh psych-summaries \
-  https://github.com/cognitivetech/Psychology-Summaries</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>bash ~/.cursor/skills/pickled-fish/scripts/add-pack.sh psych-summaries \
+  https://github.com/cognitivetech/Psychology-Summaries</code></pre>
+      </div>
 
       <p>它既接受 git 地址，也接受本地目录，装进去的位置是 <code>knowledge/custom/&lt;id&gt;</code>。这个目录<strong>默认不进公开 git</strong>——因为里面装的往往是自己整理的私有笔记，公开仓库里不该出现它们。装好之后，在 <code>REGISTRY.md</code> 里补一行路由即可。</p>
 
       <p>整个扩展动作的成本就是「一行路由 + 一个目录」，没有重建索引、没有重新向量化、没有等待任务跑完。这也是 Index-first 在个人场景下最实际的一个好处：<strong>知识库的维护成本和它的大小成正比，而不是和它的大小成平方。</strong></p>
 
-      <h2 id="when">什么时候仍然该上向量库</h2>
+      <h2 id="when">什么时候仍然该上向量库<a class="heading-anchor" href="#when" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>把这套方案说成万能是不诚实的。下面这几种情况，向量检索确实更合适：</p>
 
@@ -254,7 +284,7 @@ Read 段落      ← 只读命中的那几段，而不是整个文件</code></pr
 
       <p>反过来说，只要满足「规模可控、结构清楚、术语统一、改动频繁」这四条，文件系统索引的性价比就明显更高——而个人知识库通常四条全中。</p>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>Index-first 文件系统 RAG 的四步是 <code>REGISTRY → PACK.md → rg → Read</code>，配套的硬约束是同轮最多深读 2 个 pack，并强制标注 <code>packs_used</code>。它没有用任何新技术，只是把「先看目录、再翻正文」这个人类查资料的习惯，写成了 Agent 可以稳定执行的流程。</p>
 

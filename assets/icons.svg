@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  icons.svg —— 本站的图标 sprite（只收录页面真正用到的图标），共 22 个
+  icons.svg —— 本站的图标 sprite（只收录页面真正用到的图标），共 27 个
   ───────────────────────────────────────────────────────────────────────────
   用法（页面内，相对路径，file:// 双击打开同样有效）：
       <svg class="i" aria-hidden="true" focusable="false"><use href="assets/icons.svg#tabler-sun"></use></svg>
@@ -41,6 +41,15 @@
   20  tabler-clock-hour-4   阅读约 X 分钟                  (Tabler: clock-hour-4)
   21  tabler-alert-triangle 正文提示框                     (Tabler: alert-triangle)
   22  tabler-quote          侧栏引文标记                    (Tabler: quote)
+  23  tabler-notes          提示块：说明                     (Tabler: notes)
+  24  tabler-info-circle    提示块：提示                     (Tabler: info-circle)
+  25  tabler-bulb           提示块：技巧                     (Tabler: bulb)
+  26  tabler-zoom-in        图表工具条 / 灯箱：放大           (Tabler: zoom-in)
+  27  tabler-zoom-out       灯箱：缩小                       (Tabler: zoom-out)
+
+  23–27 这五个是在同一个 24×24 线性规范下补的：放大镜沿用本文件里
+  tabler-search 的圆心与半径（cx=10 / cy=10 / r=7），只多了 +/− 两笔，
+  所以工具条上"放大"和搜索框的放大镜看起来是同一套东西。
 -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
   <defs>
@@ -54,6 +63,26 @@
   <symbol id="tabler-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
     <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+  </symbol>
+  <symbol id="tabler-notes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/>
+    <path d="M9 7l6 0"/><path d="M9 11l6 0"/><path d="M9 15l4 0"/>
+  </symbol>
+  <symbol id="tabler-info-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+    <path d="M12 9h.01"/><path d="M11 12h1v4h1"/>
+  </symbol>
+  <symbol id="tabler-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 18h6"/><path d="M10 22h4"/>
+    <path d="M12 2a7 7 0 0 0 -4 12.7c.6 .5 1 1.3 1 2.1v.2h6v-.2c0 -.8 .4 -1.6 1 -2.1a7 7 0 0 0 -4 -12.7"/>
+  </symbol>
+  <symbol id="tabler-zoom-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/>
+    <path d="M7 10l6 0"/><path d="M10 7l0 6"/><path d="M21 21l-6 -6"/>
+  </symbol>
+  <symbol id="tabler-zoom-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/>
+    <path d="M7 10l6 0"/><path d="M21 21l-6 -6"/>
   </symbol>
   <symbol id="tabler-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>

@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="../assets/style.css">
 <script>(function(){try{var t=localStorage.getItem('scf:theme');if(t!=='dark'&&t!=='light'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 </head>
-<body>
+<body data-mermaid-src="../assets/vendor/mermaid.min.js">
 <div class="progress-bar" id="progress-bar" role="presentation"></div>
 
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -83,7 +83,7 @@
         </ol>
       </nav>
 
-      <h2 id="goal">训练目标决定规则</h2>
+      <h2 id="goal">训练目标决定规则<a class="heading-anchor" href="#goal" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>先说清楚它在练什么：无畏契约（VALORANT）风格的 rush 场景——「击杀 → 转火 → 再击杀」。转火（target switching）的关键不是精度，而是<strong>在完成一次击杀之后，准星能不能立刻落到下一个目标上</strong>。围绕这个目标，规则被设计得非常克制：</p>
 
@@ -110,11 +110,32 @@
         <li><strong>Ghost 态 0.28 秒的预瞄提示</strong>，是给你一个「目标即将出现在这里」的窗口——练的正是把准星提前放到那个位置。</li>
       </ul>
 
-      <h2 id="stack">技术选型：三个依赖，没有框架</h2>
+      <figure class="diagram">
+        <div class="diagram-bar">
+          <span class="diagram-lang">mermaid</span>
+          <span class="diagram-title">图 1 · 主循环：击杀 → 对侧刷新 → 再击杀</span>
+          <span class="diagram-tools" data-diagram-tools hidden></span>
+        </div>
+        <div class="diagram-body"><div class="mermaid">flowchart TD
+  START["开局：单局 60 秒"] --&gt; GHOST["Ghost 态 0.28s&lt;br/&gt;预瞄提示"]
+  GHOST --&gt; TARGET["目标出现&lt;br/&gt;场上同时只有 1 个"]
+  TARGET --&gt;|"单击命中"| KILL["击杀"]
+  TARGET --&gt;|"打空"| MISS["惩罚性重刷新"]
+  KILL --&gt; SWAP["对侧刷新，左右严格交替"]
+  MISS --&gt; SWAP
+  SWAP --&gt; GHOST
+  START -.-&gt;|"60 秒到"| END["结算"]
+        </div></div>
+        <figcaption class="diagram-caption">循环里只有四种事件，每一种都在服务同一个训练目标：把“击杀之后转向下一个目标”这一瞬间练成条件反射。打空会付出惩罚性重刷新的代价，所以扫射碰运气在这里是负收益。</figcaption>
+      </figure>
+
+      <h2 id="stack">技术选型：三个依赖，没有框架<a class="heading-anchor" href="#stack" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>依赖清单短到可以全部念出来：</p>
 
-      <div class="code-block"><pre><code>{
+      <div class="code-block" data-lang="json">
+        <div class="code-bar"><span class="code-lang">json</span></div>
+        <pre><code>{
   "dependencies": {
     "pixi.js": "^8.6.6",
     "three": "^0.186.0"
@@ -122,13 +143,14 @@
   "devDependencies": {
     "vite": "^5.4.10"
   }
-}</code></pre></div>
+}</code></pre>
+      </div>
 
       <p>PixiJS 负责 2D 渲染，Three.js 负责 3D 模式，Vite 负责开发和构建。<strong>没有 UI 框架</strong>——界面是手写的 DOM（<code>src/ui/UI.js</code>），因为这里需要的交互很有限：菜单、HUD、结算、设置四块。引入 React 之类的框架，收益是几十行模板代码，成本是一整套构建与心智负担。</p>
 
       <p>另一个隐含的收益是<strong>构建产物可以纯静态部署</strong>：没有后端、没有服务端渲染、没有运行时依赖，<code>dist/</code> 拷到任何静态服务器上就能跑。</p>
 
-      <h2 id="dual">2D / 3D 双模式与射线命中判定</h2>
+      <h2 id="dual">2D / 3D 双模式与射线命中判定<a class="heading-anchor" href="#dual" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>同一个游戏有两种模式：默认的 2D 几何房间，以及用 <code>?mode=3d</code> 打开的 3D 真三维训练房。两者共用同一套规则，差别在于渲染与命中判定的实现：</p>
 
@@ -149,11 +171,13 @@
 
       <p>3D 模式必须走<strong>射线命中判定</strong>：从摄像机出发沿准星方向发射一条射线，与场景中的目标求交，最近的交点决定打中了谁。这也意味着 3D 模式下「准星指向」与「实际命中」之间多了一层真实的几何关系——这恰恰是二维模式给不了的东西。</p>
 
-      <h2 id="loop">核心 loop 与代码分层</h2>
+      <h2 id="loop">核心 loop 与代码分层<a class="heading-anchor" href="#loop" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>目录结构本身就是这份设计文档：</p>
 
-      <div class="code-block"><pre><code>rush/
+      <div class="code-block" data-lang="tree">
+        <div class="code-bar"><span class="code-lang">tree</span></div>
+        <pre><code>rush/
 ├── index.html                # 结构（菜单 / HUD / 结算 / 设置）
 ├── style.css                 # 主题样式
 ├── public/
@@ -167,19 +191,20 @@
     ├── core/                 # 状态机 + 主循环 + 射击判定
     ├── three/                # three.js 3D 模式
     ├── audio/Sound.js        # 音效
-    └── ui/UI.js              # DOM UI</code></pre></div>
+    └── ui/UI.js              # DOM UI</code></pre>
+      </div>
 
       <p>四层职责的划分值得注意：<code>config/</code> 是纯数据（特工、场景、准星、i18n），<code>core/</code> 是纯逻辑（状态机、主循环、射击判定），<code>three/</code> 与 <code>ui/</code> 是表现层，<code>audio/</code> 单独成块。</p>
 
       <p>把「状态机 + 主循环 + 射击判定」放在一起，是这类小游戏最重要的一条经验：<strong>游戏逻辑必须和渲染解耦</strong>。因为它俩的更新频率和职责完全不同——逻辑关心「什么时候刷新目标」，渲染关心「这一帧画在哪」，而射击判定关心的是一次输入事件该不该被算作命中。混在一起写，2D 和 3D 就没法共用同一套规则。</p>
 
-      <h2 id="crosshair">参数化准星：把职业选手的配置搬过来</h2>
+      <h2 id="crosshair">参数化准星：把职业选手的配置搬过来<a class="heading-anchor" href="#crosshair" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>准星在这个项目里不是一张贴图，而是一组参数：颜色、长度、粗细、间隙、描边、中心点……全部可调。更有意思的是它<strong>支持导入职业准星代码</strong>，格式形如 <code>0;P;c;1;...</code>。</p>
 
       <p>这是一个很聪明的产品决定：目标用户（FPS 玩家）手里本来就有一串自己惯用的准星代码，能直接粘贴导入，比让人一个个滑块去调要友好得多。从工程上看，这件事的价值在于<strong>把「准星」从美术资源变成了纯配置数据</strong>——一份代码字符串 = 一组参数 = 一个可复现的状态，不需要任何图片文件。</p>
 
-      <h2 id="audio">分轨音效，以及缺省时的回退</h2>
+      <h2 id="audio">分轨音效，以及缺省时的回退<a class="heading-anchor" href="#audio" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>音效被拆成五条独立音轨：<strong>击杀 / 爆头 / 连杀 / miss / 局末</strong>。分轨的意义不只是「声音不同」，而是每一类事件都能被单独替换和调整——比如你只想换掉 miss 的音效，不需要动其他四条。</p>
 
@@ -187,7 +212,7 @@
 
       <p>这个「回退」的设计在这里至关重要，因为音效素材（见下一节）是不能随仓库分发的：如果程序硬依赖 MP3，那么一个 clone 下来的仓库开箱就是哑的，甚至可能直接抛错。<strong>把「缺省」当成一种必须被正常处理的状态</strong>，是这类项目能不能被别人顺利跑起来的关键。</p>
 
-      <h2 id="assets">资源覆盖机制：放入即生效，不放则兜底</h2>
+      <h2 id="assets">资源覆盖机制：放入即生效，不放则兜底<a class="heading-anchor" href="#assets" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>仓库里有一套统一的资源策略，README 称之为「本地覆盖」：<strong>放入即生效，不放则用程序化兜底（剪影 + 合成音效）</strong>。</p>
 
@@ -206,43 +231,58 @@
 
       <p>功能上，击杀目标会在 <strong>29 名特工头像</strong>之间随机轮换，也支持上传自定义头像。头像、音效、3D 模型三者的覆盖机制一致，于是「用官方的」和「用我自己的」在代码路径上没有任何区别——这对一个带有版权敏感素材的项目来说，是唯一可行的结构。</p>
 
-      <h2 id="three">3D 模型与构建时 gzip</h2>
+      <h2 id="three">3D 模型与构建时 gzip<a class="heading-anchor" href="#three" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>3D 模式用的特工模型是 <strong>TripoSR 生成的顶点着色 OBJ</strong>。选 OBJ + 顶点着色而不是带贴图的格式，理由很实际：顶点着色不依赖外部材质与贴图文件，一个 <code>.obj</code> 就是完整的模型，加载链路最短。</p>
 
       <p>OBJ 是纯文本格式，体积偏大，所以生产构建里加了一步后处理：</p>
 
-      <div class="code-block"><pre><code>"build": "vite build &amp;&amp; node scripts/compress-obj.mjs"</code></pre></div>
+      <div class="code-block" data-lang="json">
+        <div class="code-bar"><span class="code-lang">json</span></div>
+        <pre><code>"build": "vite build &amp;&amp; node scripts/compress-obj.mjs"</code></pre>
+      </div>
 
       <p><code>scripts/compress-obj.mjs</code> 会把 OBJ 压缩成 <code>.obj.gz</code>。这一步放在构建阶段而不是运行时，是因为它<strong>只跟资源内容有关，跟用户操作无关</strong>——构建一次压一次，用户每次打开都省一次。这也是这类纯静态项目最舒服的地方：所有能提前做的事，都可以在构建时做完。</p>
 
-      <h2 id="build">构建与部署</h2>
+      <h2 id="build">构建与部署<a class="heading-anchor" href="#build" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>开发和生产两条命令，没有任何额外步骤：</p>
 
-      <div class="code-block"><pre><code># 开发环境
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code># 开发环境
 npm install
 npm run dev        # http://localhost:5173
 
 # 生产构建
 npm run build      # vite build + 压缩 OBJ 为 .obj.gz
-npm run preview    # 本地预览构建产物</code></pre></div>
+npm run preview    # 本地预览构建产物</code></pre>
+      </div>
 
       <p>构建产物输出到 <code>dist/</code>，可以直接用最朴素的方式验证：</p>
 
-      <div class="code-block"><pre><code>python3 -m http.server 5173 --directory dist</code></pre></div>
+      <div class="code-block" data-lang="bash">
+        <div class="code-bar"><span class="code-lang">bash</span></div>
+        <pre><code>python3 -m http.server 5173 --directory dist</code></pre>
+      </div>
 
       <p>能这样验证，本身就说明了一件事：<strong>产物里没有任何需要服务端配合的东西</strong>。没有 API、没有环境变量、没有反向代理规则——这也是「无后端、无框架、无运行时依赖」这三句话在部署环节的实际兑现。</p>
 
-      <h2 id="copyright">版权边界</h2>
+      <h2 id="copyright">版权边界<a class="heading-anchor" href="#copyright" aria-label="本节链接" tabindex="-1">#</a></h2>
 
-      <p>README 的版权声明写得很直接：VALORANT 的特工立绘、头像、音效均为 <strong>Riot Games</strong> 版权素材，<strong>仅用于个人学习与内容创作，禁止商业分发</strong>。</p>
+      <div class="note note">
+        <span class="note-ic" aria-hidden="true"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-notes"></use></svg></span>
+        <div class="note-body">
+          <p class="note-title">版权边界</p>
+          <p>README 的版权声明写得很直接：VALORANT 的特工立绘、头像、音效均为 <strong>Riot Games</strong> 版权素材，<strong>仅用于个人学习与内容创作，禁止商业分发</strong>。</p>
+        </div>
+      </div>
 
       <p>前面那套「本地覆盖」机制，正是为了让这句话在工程上站得住：仓库本身不携带版权素材，用的是程序化兜底（剪影 + 合成音效）；想要完整体验的人，自行在本地放入素材。于是<strong>代码开源</strong>和<strong>素材不可分发</strong>这两件互相冲突的事，被目录约定分开了。</p>
 
       <p>仓库里还附了 <code>PRD_PREAIM_Rush_Peek.md</code>（产品需求）与 <code>DEVELOPMENT.md</code>（开发文档）两份文档——在一个个人项目里同时维护 PRD 和开发文档并不常见，但对「玩法规则本身就是核心设计」的项目来说，先把规则写清楚再写代码是划算的。</p>
 
-      <h2 id="summary">小结</h2>
+      <h2 id="summary">小结<a class="heading-anchor" href="#summary" aria-label="本节链接" tabindex="-1">#</a></h2>
 
       <p>这个项目最能说明问题的一点是：<strong>把一个训练器的范围收窄到「只练转火」，反而让它的工程细节变得清晰</strong>。规则只有四条，但每条都有明确的训练意图；依赖只有三个，但没有一个是为了「看起来更专业」而加的。</p>
 

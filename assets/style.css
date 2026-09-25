@@ -20,6 +20,29 @@
    15. 徽章 / 项目卡片 / 时间线 / 关于页列表
    ========================================================================== */
 
+/* 00. 本地字体（零外部请求） ----------------------------------------------
+   两个字体文件都随仓库分发（assets/fonts/），都是 SIL Open Font License 1.1：
+     · Inter            可变字重 100–900，拉丁子集，48,256 B
+     · JetBrains Mono   可变字重 100–800，拉丁子集，40,404 B
+   都是**拉丁子集**：没有中文字形。这正是可以把 Inter 放在 --font-sans 首位的
+   原因 —— 遇到汉字时浏览器按 cmap 自动回退到后面的系统 CJK 字体。
+   font-display: swap 让首屏先用系统字体渲染，字体到位后再换，不阻塞阅读。
+   字体策略与取舍见 DESIGN.md 第 19 节；来源与许可见 assets/vendor/LICENSES.md。 */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+}
+
 /* 01. 设计令牌 ------------------------------------------------------------ */
 /* 调色板直接采样自站长的头像（冬季日系插画：石板蓝天空 + 米白连帽衫 + 沙色格纹 +
    近黑头发）。每个色值后面的百分比是它在头像里的实际占比（canvas 取样）。
@@ -27,14 +50,23 @@
 :root {
   color-scheme: light;
 
-  /* 字体：标题用系统衬线（宋体系），正文用无衬线。不加载任何 Web Font。 */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
-    "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Source Han Sans SC",
-    Roboto, Helvetica, Arial, sans-serif;
+  /* 字体（详见第 00 节与 DESIGN.md 第 19 节）
+     · Inter 放 --font-sans 首位：它是拉丁子集，没有中文字形，
+       汉字会按 cmap 逐字回退到后面的系统 CJK，混排不受影响；
+     · 宋体标题栈**保持原样**，不插 Inter —— 把无衬线拉丁塞进衬线标题，
+       中英会一个几何无衬线、一个宋体，正是要避免的那种"混搭"；
+     · 需要"拉丁 Inter + 中文宋体"时用 --font-latin-serif；
+     · 末尾一律保留 system-ui / sans-serif 兜底，中文不会出豆腐块。 */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC",
+    "Source Han Sans SC", Roboto, Helvetica, Arial, system-ui, sans-serif;
   --font-serif: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC",
     "SimSun", serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono",
-    Consolas, "Liberation Mono", Menlo, "Microsoft YaHei Mono", monospace;
+  --font-latin-serif: "Inter", "Songti SC", "Noto Serif CJK SC",
+    "Source Han Serif SC", "SimSun", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    "Cascadia Mono", Consolas, "Liberation Mono", Menlo, "Microsoft YaHei Mono",
+    monospace;
 
   /* 纸（连帽衫的米白） */
   --bg: #e9e7df;
@@ -55,6 +87,9 @@
   --border-strong: #c6c2b6;
   --border-field: #8b8880;
   --mark: #d9cbb6;
+
+  /* 图表（mermaid）画布底色：亮色主题用"纸"，暗色主题用墨色微抬 */
+  --diagram-bg: #f2f1ec;
 
   /* 石板蓝（天空）—— 主色；浅色主题下压深到 #35485a 才够 4.5:1 */
   --accent: #35485a;
@@ -109,6 +144,7 @@
   --border-strong: #3c434c;
   --border-field: #6a727c;
   --mark: #4a4136;
+  --diagram-bg: #1b1f26;
 
   --accent: #9db2c6;
   --accent-hover: #c8d8e4;
@@ -144,6 +180,7 @@
     --border-strong: #3c434c;
     --border-field: #6a727c;
     --mark: #4a4136;
+    --diagram-bg: #1b1f26;
     --accent: #9db2c6;
     --accent-hover: #c8d8e4;
     --accent-soft: rgba(157, 178, 198, 0.13);
@@ -851,31 +888,17 @@ button, input, select, textarea {
   color: var(--text-muted);
 }
 
-/* 作者位：小幅插画卡片（细边框 + 极轻阴影 + 微倾），不是廉价的小圆头像 */
+/* 作者位：文字优先。
+   头像只出现一次——Hero 右侧那幅装框插画；侧栏这里不再重复同一张图，
+   改用一枚小号的刊头 kicker + 姓名开场，避免同页两张一模一样的头像。 */
 .author-box { text-align: left; }
-.author-portrait {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  margin: 0 0 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--bg-subtle);
-  box-shadow: var(--shadow-sm);
-  transform: rotate(-1.2deg);
-  transition: transform 0.5s var(--ease);
+.author-kicker {
+  margin: 0 0 8px;
+  color: var(--sand-deep);
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.18em;
 }
-.author-portrait img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 30%;
-  filter: saturate(0.94);
-}
-.author-portrait:hover { transform: rotate(0deg); }
 .author-name { margin: 0 0 4px; font-size: 18px; }
 .author-role {
   margin: 0 0 12px;
@@ -1094,28 +1117,62 @@ button, input, select, textarea {
 }
 .prose a:hover { text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
 
-/* 提示框：图标来自 assets/icons.svg，不再用 emoji */
+/* 提示块：四种语义各有一套"左边框 + 底色 + 图标"，
+   对应文档站的 Note / Tip / Warning / Info。图标全部来自 assets/icons.svg，不用 emoji。
+   四色都取自本站调色板，靠**色相**区分，而不是靠饱和度堆叠：
+     说明 .note           石板蓝 --accent        （正文里最常见的"补充一句"）
+     技巧 .note-tip       沙     --sand          （围巾色，站内的强调色）
+     提示 .note-info      天光   --sky           （天空色的浅档）
+     注意 .note-warning   墨     --text          （最重的一档，一眼看到）
+   亮/暗主题共用同一批令牌，所以两套主题下四种提示块的相对轻重一致。 */
 .prose .note {
-  margin: 1.5rem 0;
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
   padding: 16px 20px;
   border: 1px solid var(--hairline);
-  border-left: 2px solid var(--sand);
+  border-left: 2px solid var(--accent);
   border-radius: var(--radius-sm);
-  background: var(--bg-elevated);
+  background: var(--accent-soft);
   color: var(--text-secondary);
 }
-.prose .note > .note-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+.prose .note-tip {
+  border-left-color: var(--sand);
+  background: var(--sand-soft);
+}
+.prose .note-info {
+  border-left-color: var(--sky);
+  background: var(--sky-soft);
+}
+.prose .note-warning {
+  border-left-color: var(--text);
+  background: var(--bg-inset);
+}
+
+.prose .note-ic {
+  flex: none;
+  margin-top: 4px;
+  line-height: 1;
+  color: var(--accent);
+}
+.prose .note-tip .note-ic { color: var(--sand-deep); }
+.prose .note-info .note-ic { color: var(--accent); }
+.prose .note-warning .note-ic { color: var(--sand-deep); }
+.prose .note-ic .i { display: block; width: 18px; height: 18px; }
+
+.prose .note-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 16px;
+}
+.prose .note-body > *:last-child { margin-bottom: 0; }
+.prose .note-title {
+  margin: 0 0 8px;
   font-family: var(--font-serif);
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
 }
-.prose .note .i { width: 18px; height: 18px; color: var(--sand-deep); }
-.prose .note p:last-child { margin-bottom: 0; }
 
 .prose blockquote {
   margin: 1.5rem 0;
@@ -1136,18 +1193,54 @@ button, input, select, textarea {
   font-size: 14px;
 }
 
-.code-block { position: relative; margin: 1.5rem 0; }
-
-.prose pre {
-  margin: 0;
-  padding: 16px 20px;
+/* 代码块：顶部 header（左语言名 · 右复制），文本区独立横向滚动。
+   语言名写死在 HTML 的 .code-lang 里（可维护：改语言就改那一个词），
+   .code-block[data-lang] 同时给脚本用来拼无障碍标签。 */
+.code-block {
+  position: relative;
+  margin: 24px 0;
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
   background: var(--bg-inset);
+  overflow: hidden;
+}
+
+.code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg-subtle);
+}
+.code-lang {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.prose pre {
+  margin: 0;
+  padding: 16px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 24px;
   tab-size: 2;
+}
+/* 已经被 .code-block 包住的 pre 不再自带边框与底色，避免"框里套框" */
+.code-block > pre {
+  border: 0;
+  border-radius: 0;
+  background: none;
 }
 .prose pre code {
   padding: 0;
@@ -1160,12 +1253,10 @@ button, input, select, textarea {
 }
 
 .code-copy {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 28px;
   padding: 4px 8px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
@@ -1174,34 +1265,59 @@ button, input, select, textarea {
   font-size: 12px;
   font-family: var(--font-sans);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
 }
 .code-copy .i { width: 13px; height: 13px; }
-.code-block:hover .code-copy,
-.code-copy:focus-visible { opacity: 1; }
-.code-copy:hover { color: var(--text); }
-.code-copy.is-copied { color: var(--accent); border-color: var(--accent); opacity: 1; }
+/* 两个图标叠在同一个按钮里，靠 .is-copied 切换：复制 → 对勾 */
+.code-copy .ic-done { display: none; }
+.code-copy.is-copied .ic-done { display: block; }
+.code-copy.is-copied .ic-copy { display: none; }
+.code-copy:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+}
+.code-copy.is-copied { color: var(--accent); border-color: var(--accent); }
 
+/* 表格：只有横向 1px 分隔线，没有竖线、没有斑马纹、没有底色
+   （对齐文档站的表格：表头 14px / w600 / padding 0 8px 8px 0，
+   单元格 padding 8px 8px 8px 0）。
+   唯一的本站差异是表头仍用宋体 —— 和 h2/h3 保持同一套"杂志"语气。 */
 .prose table {
   width: 100%;
-  margin: 1.5rem 0;
+  margin: 24px 0;
   border-collapse: collapse;
   font-size: 14px;
+  line-height: 1.6;
 }
 .prose th, .prose td {
-  padding: 8px 12px;
-  border: 1px solid var(--hairline);
+  padding: 8px 8px 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
   text-align: left;
+  vertical-align: top;
 }
 .prose thead th {
-  background: var(--bg-subtle);
+  padding: 0 8px 8px 0;
+  background: none;
   font-family: var(--font-serif);
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text);
 }
-.prose tbody tr:nth-child(even) { background: color-mix(in srgb, var(--bg-subtle) 60%, transparent); }
+.prose tbody tr:last-child td { border-bottom: 0; }
+.prose td[data-numeric] { font-variant-numeric: tabular-nums; }
 
-.table-scroll { overflow-x: auto; margin: 1.5rem 0; }
+/* 宽表格的横向滚动容器：375px 下由它自己滚，绝不撑破页面。
+   tabindex/role 由 HTML 写在 <div class="table-scroll"> 上会更严谨，
+   但那是 20+ 个 tab 停靠点，收益不抵成本，这里只保证不溢出。 */
+.table-scroll {
+  max-width: 100%;
+  margin: 24px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
 .table-scroll table { margin: 0; min-width: 420px; }
 
 /* 目录：编号用 01 / 02 的前导零，同样由计数器生成 */
@@ -1481,8 +1597,6 @@ button, input, select, textarea {
 @media (max-width: 960px) {
   .layout { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
   .layout-side { position: static; }
-  /* 单栏时侧栏里的头像收成小幅插图 */
-  .author-portrait { width: 200px; }
 }
 
 @media (max-width: 480px) {
@@ -1643,6 +1757,10 @@ button, input, select, textarea {
 }
 .project-name {
   margin: 0;
+  /* 项目名大多是 `starmerx_listing`、`EPF-Unlocker` 这类拉丁标识符，
+     括注里才出现中文。用 --font-latin-serif：拉丁走 Inter，中文仍是宋体，
+     不再让 SimSun 的拉丁字形去渲染仓库名。 */
+  font-family: var(--font-latin-serif);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
@@ -1949,7 +2067,6 @@ button, input, select, textarea {
   .hero-3d,
   .hero-3d-veil,
   .hero-portrait,
-  .author-portrait,
   .card-3d .atropos-shadow,
   .card-3d .atropos-highlight { display: none !important; }
 }
@@ -1991,4 +2108,281 @@ button, input, select, textarea {
   .hero-title { font-size: 44px; }
   .post-title,
   .page-title { font-size: 36px; }
+}
+
+/* ==========================================================================
+   19. 标题锚点（h2 / h3 的 "#" 链接）
+   --------------------------------------------------------------------------
+   对齐文档站的做法：<a class="heading-anchor" href="#id" aria-label="本节链接"
+   tabindex="-1">#</a>。
+     · tabindex="-1" —— 整页几十个标题，如果都进 Tab 序列，键盘用户要按几十次
+       才能走过正文；锚点本身仍是可点击、可被读屏定位的链接；
+     · aria-label —— 读屏念的是"本节链接"，而不是"井号"；
+     · 24×24 最小尺寸 —— 它不在 <p>/<li> 里，属于审计里"块状目标"那一类，
+       必须满足 WCAG 2.2 SC 2.5.8；
+     · 默认 opacity:0，hover 标题或键盘聚焦时才出现，不干扰阅读。
+   ========================================================================== */
+.prose .heading-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.prose h2:hover > .heading-anchor,
+.prose h3:hover > .heading-anchor,
+.prose .heading-anchor:focus-visible { opacity: 1; }
+.prose .heading-anchor:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   20. 图表（mermaid）与灯箱
+   --------------------------------------------------------------------------
+   20.1 图表容器
+        .diagram 是 <figure>，一条边框把它和正文分开；顶栏沿用代码块的
+        .code-bar 语言（左"mermaid"语言标识 + 标题，右工具按钮）。
+        未渲染时 .mermaid 里的内容就是**图表源码**，按等宽代码块呈现 ——
+        这就是无 JS / mermaid 加载失败时的降级，不会是空白。
+   20.2 灯箱
+        全屏遮罩里放大看同一张图，支持 ±缩放 / 重置 / Esc / 点背景关闭。
+        节点由 JS 在第一次打开时创建，关闭后即刻移除 —— 页面上不留隐藏的
+        巨大 DOM，也不会给审计留下不可见的字号/间距。
+   ========================================================================== */
+
+.diagram {
+  margin: 24px 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.diagram-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 36px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg-subtle);
+}
+.diagram-lang {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.diagram-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.diagram-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* author 样式里的 display 会盖掉 UA 的 [hidden]{display:none}，必须显式写一条：
+   没有 JS 时工具条整体不出现，图表区只剩"源码 + mermaid 语言标识" */
+.diagram-tools[hidden] { display: none; }
+.diagram-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.diagram-btn .i { width: 13px; height: 13px; }
+.diagram-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.diagram-btn:disabled { opacity: 0.45; cursor: default; }
+.diagram-btn .ic-done { display: none; }
+.diagram-btn.is-copied .ic-done { display: block; }
+.diagram-btn.is-copied .ic-copy { display: none; }
+.diagram-btn.is-copied { color: var(--accent); border-color: var(--accent); }
+
+.diagram-body { position: relative; }
+
+/* 未渲染：源码原样显示（无 JS 时的降级形态，带上面的 mermaid 语言标识） */
+.diagram .mermaid {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  background: var(--bg-inset);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+  tab-size: 2;
+}
+/* 已渲染：mermaid 画的 SVG 居中，底色换成图表专用画布色 */
+.diagram .mermaid[data-processed="true"] {
+  padding: 16px;
+  background: var(--diagram-bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: normal;
+  text-align: center;
+}
+.diagram .mermaid[data-processed="true"] svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.diagram-body[data-zoomable] { cursor: zoom-in; }
+.diagram-body[data-zoomable]::after {
+  content: "点击放大";
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+}
+.diagram-body[data-zoomable]:hover::after,
+.diagram-body[data-zoomable]:focus-visible::after { opacity: 1; }
+
+.diagram-caption {
+  margin: 0;
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--hairline);
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ---- 20.2 灯箱 ---- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 21, 25, 0.78);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.lightbox-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1120px;
+  max-height: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.lightbox-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 44px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg-subtle);
+}
+.lightbox-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.lightbox-tools { display: inline-flex; align-items: center; gap: 4px; }
+.lightbox-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.lightbox-btn:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.lightbox-btn:disabled { opacity: 0.45; cursor: default; }
+.lightbox-zoom {
+  min-width: 56px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.lightbox-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--diagram-bg);
+  cursor: grab;
+}
+.lightbox-stage svg { display: block; max-width: none; height: auto; }
+
+@media (max-width: 480px) {
+  .diagram-bar { padding: 4px 8px 8px 12px; }
+  .lightbox { padding: 12px; }
+  .lightbox-stage { padding: 8px; }
+}
+
+@media print {
+  .heading-anchor,
+  .diagram-tools,
+  .lightbox { display: none !important; }
 }
