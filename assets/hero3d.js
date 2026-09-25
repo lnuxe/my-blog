@@ -21,7 +21,9 @@
   var LINK_GAP = 15;                       // 连线的最大间距
 
   /* ---- 主题配色：从 CSS 变量读，不写死颜色 ---- */
-  var FALLBACK = { accent: '#1a5fd0', bg: '#ffffff' };
+  /* 与 assets/style.css 第 01 节的设计令牌一致（石板蓝 / 纸白）。
+     只有当 CSS 变量读不到时才会用到这一组。 */
+  var FALLBACK = { accent: '#35485a', bg: '#e9e7df' };
 
   function cssVar(name, fallback) {
     try {
