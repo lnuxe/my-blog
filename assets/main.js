@@ -23,7 +23,8 @@
   function applyTheme(theme) {
     root.setAttribute('data-theme', theme);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) { meta.setAttribute('content', theme === 'dark' ? '#0e1116' : '#ffffff'); }
+    /* 与 css 第 01 节的 --bg 保持一致：亮色是纸白 #e9e7df，暗色是墨色 #141519 */
+    if (meta) { meta.setAttribute('content', theme === 'dark' ? '#141519' : '#e9e7df'); }
     var btn = document.getElementById('theme-toggle');
     if (btn) {
       var label = theme === 'dark' ? '切换到浅色主题' : '切换到深色主题';
@@ -275,7 +276,17 @@
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'code-copy';
-      btn.textContent = '复制';
+      /* 图标来自本地 sprite（assets/icons.svg），无外部请求；
+         路径同样相对页面，posts/ 下会自动解析成 ../assets/icons.svg */
+      var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('class', 'i');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.setAttribute('focusable', 'false');
+      var use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      use.setAttribute('href', 'assets/icons.svg#tabler-copy');
+      icon.appendChild(use);
+      btn.appendChild(icon);
+      btn.appendChild(document.createTextNode('复制'));
       btn.setAttribute('aria-label', '复制这段代码');
       wrapper.appendChild(btn);
 
@@ -283,9 +294,12 @@
         var text = code.textContent;
         function done() {
           btn.textContent = '已复制';
+          /* textContent 会把图标节点一并清掉，这里重新挂回去 */
+          if (!btn.querySelector('svg')) { btn.insertBefore(icon.cloneNode(true), btn.firstChild); }
           btn.classList.add('is-copied');
           window.setTimeout(function () {
             btn.textContent = '复制';
+            if (!btn.querySelector('svg')) { btn.insertBefore(icon.cloneNode(true), btn.firstChild); }
             btn.classList.remove('is-copied');
           }, 1600);
         }

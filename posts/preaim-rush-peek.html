@@ -6,7 +6,7 @@
 <title>用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器 · SupermanCantFly</title>
 <meta name="description" content="preaim-rush-peek 的工程细节：2D/3D 双模式与射线命中判定、参数化准星、分轨音效与缺省回退、资源本地覆盖机制与构建时 OBJ gzip。">
 <meta name="author" content="SupermanCantFly">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#e9e7df">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="alternate" type="application/rss+xml" title="SupermanCantFly · RSS 订阅" href="../feed.xml">
 <link rel="stylesheet" href="../assets/style.css">
@@ -20,15 +20,7 @@
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="../index.html">
-      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
-        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
-        <rect width="64" height="64" rx="15" fill="url(#brandGrad)"/>
-        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M32 49V17"/>
-          <path d="M18.5 30.5 32 17l13.5 13.5"/>
-        </g>
-        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
-      </svg>
+      <svg class="brand-mark" viewBox="0 0 64 64" width="32" height="32" role="img" aria-label="SupermanCantFly 站点标志" focusable="false"><rect width="64" height="64" rx="3" fill="url(../assets/icons.svg#brandGrad)"/><g fill="none" stroke="#f2f1ec" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 49V17"/><path d="M18.5 30.5 32 17l13.5 13.5"/></g><circle cx="32" cy="49" r="2.6" fill="#b4a08c"/></svg>
       <span class="brand-text">
         <span class="brand-name">SupermanCantFly</span>
         <span class="brand-tagline">自动化 · Agent · Flutter</span>
@@ -47,11 +39,11 @@
 
     <div class="header-actions">
       <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false" title="切换深色 / 浅色主题">
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.7 8.7 0 1 0 11.1 11.1z"/></svg>
+        <svg class="icon-sun" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-sun"></use></svg>
+        <svg class="icon-moon" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-moon"></use></svg>
       </button>
       <button class="icon-button nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="打开导航菜单">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-menu-2"></use></svg>
       </button>
     </div>
   </div>
@@ -64,11 +56,11 @@
         <p class="post-eyebrow">前端实战</p>
         <h1 class="post-title">用 Vite + PixiJS + Three.js 写一个纯前端 FPS 瞄准训练器</h1>
         <p class="post-meta">
-          <time datetime="2026-08-24">2026 年 8 月 24 日</time>
+          <span class="meta-item"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-calendar"></use></svg><time datetime="2026-08-24">2026 年 8 月 24 日</time></span>
           <span class="dot" aria-hidden="true">·</span>
-          <span>约 3400 字</span>
+          <span class="meta-item"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-book-2"></use></svg>约 3400 字</span>
           <span class="dot" aria-hidden="true">·</span>
-          <span>阅读约 8 分钟</span>
+          <span class="meta-item"><svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-clock-hour-4"></use></svg>阅读约 8 分钟</span>
         </p>
         <ul class="tag-list"><li><a class="tag" href="../tags.html?tag=%E5%89%8D%E7%AB%AF">前端</a></li><li><a class="tag" href="../tags.html?tag=PixiJS">PixiJS</a></li><li><a class="tag" href="../tags.html?tag=Three.js">Three.js</a></li><li><a class="tag" href="../tags.html?tag=%E6%B8%B8%E6%88%8F">游戏</a></li></ul>
       </header>
@@ -262,6 +254,23 @@ npm run preview    # 本地预览构建产物</code></pre></div>
           <a class="post-nav-prev" href="flutter-defect-triage-skill.html"><span class="post-nav-label">← 上一篇</span><span class="post-nav-title">先对齐坑，再写修复：一个 Flutter 缺陷分诊 Skill 的设计</span></a>
           <a class="is-next" href="../archive.html"><span class="post-nav-label">继续阅读 →</span><span class="post-nav-title">全部文章归档</span></a>
         </nav>
+      <section class="related" aria-labelledby="related-title">
+        <h2 class="sidebar-title" id="related-title">延伸阅读</h2>
+        <ul class="related-list">
+        <li>
+          <a href="wechat-4x-db-export.html">把微信 4.x 的聊天记录导出来：LLDB 抓 passphrase、PBKDF2 解密与 wxecho 导出</a>
+          <span class="related-meta">2026-09-28 · 逆向工程 · 约 9 分钟</span>
+        </li>
+        <li>
+          <a href="index-first-filesystem-rag.html">为什么个人知识库不用向量库：Index-first 文件系统 RAG 的四步路由</a>
+          <span class="related-meta">2026-09-21 · AI 知识库 · 约 8 分钟</span>
+        </li>
+        <li>
+          <a href="deterministic-browser-automation.html">确定性优先的浏览器自动化：规则写进代码，LLM 只做兜底</a>
+          <span class="related-meta">2026-09-14 · 浏览器自动化 · 约 9 分钟</span>
+        </li>
+        </ul>
+      </section>
       </footer>
     </article>
   </div>
@@ -272,15 +281,7 @@ npm run preview    # 本地预览构建产物</code></pre></div>
     <div class="footer-grid">
       <div>
         <div class="footer-brand">
-          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false">
-        <defs><linearGradient id="brandGradFoot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f8ef7"/><stop offset="1" stop-color="#0ea5a5"/></linearGradient></defs>
-        <rect width="64" height="64" rx="15" fill="url(#brandGradFoot)"/>
-        <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M32 49V17"/>
-          <path d="M18.5 30.5 32 17l13.5 13.5"/>
-        </g>
-        <circle cx="32" cy="49" r="2.6" fill="#ffffff"/>
-      </svg>
+          <svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" role="img" aria-label="SupermanCantFly 站点标志" focusable="false"><rect width="64" height="64" rx="3" fill="url(../assets/icons.svg#brandGrad)"/><g fill="none" stroke="#f2f1ec" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 49V17"/><path d="M18.5 30.5 32 17l13.5 13.5"/></g><circle cx="32" cy="49" r="2.6" fill="#b4a08c"/></svg>
           <strong>SupermanCantFly</strong>
         </div>
         <p class="footer-about">记录浏览器自动化、AI Agent 技能包与 Flutter 多端的折腾过程。全站静态、零外部依赖，双击 HTML 就能离线阅读。</p>
@@ -313,7 +314,7 @@ npm run preview    # 本地预览构建产物</code></pre></div>
 </footer>
 
 <button class="icon-button back-to-top" id="back-to-top" type="button" aria-label="回到页面顶部" title="回到顶部">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>
+  <svg class="i" aria-hidden="true" focusable="false"><use href="../assets/icons.svg#tabler-arrow-up"></use></svg>
 </button>
 
 <script src="../assets/main.js" defer></script>
