@@ -88,6 +88,11 @@ def measure(url, light=False, width=1280, height=900):
     expr = open(EXPR_FILE, encoding="utf-8").read()
     t = ws.call("Target.createTarget", {"url": "about:blank"})["result"]["targetId"]
     sess = ws.call("Target.attachToTarget", {"targetId": t, "flatten": True})["result"]["sessionId"]
+    # 把被测标签页切到前台：Chrome 的 :focus-visible 需要文档自身持有焦点，
+    # 后台标签页里探针的 probe.focus() 不会点亮焦点环，会让"焦点外观"误报 FAIL
+    # （DESIGN.md 第 8 节复现提醒里记的就是这一条）。这里由工具自己保证前台。
+    ws.call("Target.activateTarget", {"targetId": t})
+    ws.call("Emulation.setFocusEmulationEnabled", {"enabled": True}, sess)
     ws.call("Page.enable", {}, sess)
     ws.call("Emulation.setDeviceMetricsOverride",
             {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": width < 500}, sess)

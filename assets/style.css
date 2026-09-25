@@ -132,16 +132,22 @@
   --bg-subtle: #1b1f26;
   --bg-elevated: #1f242c;
   --bg-inset: #171b21;
-  --surface-warm: #191a1c;
+  /* 悬停底色：亮色是"更暖"，暗色必须是"更亮"才对得上。
+     原来写成 #191a1c（比卡片底色 #1f242c 更暗、色相还跳到暖棕），
+     暗色下 hover 反而像被按下去，与亮色语义相反。 */
+  --surface-warm: #232a33;
 
   --text: #eceae3;
   --text-secondary: #c3c7cd;
   --text-muted: #9aa1a9;
 
+  /* 暗色下 --border 刻意比 --hairline 重一档：发丝线负责"分隔"，
+     卡片外框负责"成形"。两者同值时卡片在墨底上会糊成一片（这就是原来
+     暗色"发灰"的原因）。--border-strong 再抬一档，hover 才有可见的变化。 */
   --hairline: #2b313a;
   --graph: rgba(180, 160, 140, 0.08);
-  --border: #2b313a;
-  --border-strong: #3c434c;
+  --border: #39414c;
+  --border-strong: #4a535f;
   --border-field: #6a727c;
   --mark: #4a4136;
   --diagram-bg: #1b1f26;
@@ -170,14 +176,14 @@
     --bg-subtle: #1b1f26;
     --bg-elevated: #1f242c;
     --bg-inset: #171b21;
-    --surface-warm: #191a1c;
+    --surface-warm: #232a33;
     --text: #eceae3;
     --text-secondary: #c3c7cd;
     --text-muted: #9aa1a9;
     --hairline: #2b313a;
     --graph: rgba(180, 160, 140, 0.08);
-    --border: #2b313a;
-    --border-strong: #3c434c;
+    --border: #39414c;
+    --border-strong: #4a535f;
     --border-field: #6a727c;
     --mark: #4a4136;
     --diagram-bg: #1b1f26;
@@ -366,12 +372,18 @@ button, input, select, textarea {
 }
 .brand:hover { color: var(--text); text-decoration: none; }
 
+/* 站点标志：<img> 直接引用根目录的 favicon.svg —— 页头 / 页脚标志与浏览器
+   标签页上的图标从此是同一个文件，不可能再对不上。
+   用 <img> 而不是 sprite 的 <use>：file:// 下 Chrome / Firefox 会拒绝
+   跨文档的 SVG <use> 外部引用，双击打开时页头会只剩文字（图标 sprite
+   本身就受这条限制）。<img> 在同目录下不受影响，两种打开方式一致。
+   圆角与阴影交给 SVG 自己的圆角方块（rx=9 / 64），
+   CSS 不再叠一层 2px 圆角，避免把图标的圆角切掉。 */
 .brand-mark {
   flex: none;
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: 2px;
-  box-shadow: var(--shadow-sm);
   transition: transform var(--dur) var(--ease);
 }
 .brand:hover .brand-mark { transform: translateY(-1px) rotate(-3deg); }
@@ -523,12 +535,16 @@ button, input, select, textarea {
 }
 .hero > .container { position: relative; z-index: 2; }
 
-/* 刊眉：小字距的一行小注，杂志扉页的常见做法 */
+/* 刊眉：小字距的一行小注，杂志扉页的常见做法。
+   2026-10 精修：右侧补一条引满整栏的发丝线，做成真正的"刊头横线"
+   （与 .year-label::after、.section-head 的下边线是同一套版式语言）。
+   原来只有左边一小段 16px 的沙色短线，孤零零地挂在文字前面，
+   既不像装饰也不像分隔，属于典型的"多余装饰"。 */
 .hero-kicker {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 16px;
+  margin: 0 0 24px;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
@@ -539,8 +555,17 @@ button, input, select, textarea {
   content: "";
   flex: none;
   width: 16px;
+  height: 2px;
+  background: var(--sand);
+}
+.hero-kicker::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: 24px;
   height: 1px;
-  background: var(--sand-deep);
+  /* 比 --hairline 重一档：hero 顶部还压着 --sky-soft 的渐层，
+     发丝线在那层浅绿灰上几乎看不见，等于白写的装饰 */
+  background: var(--border-strong);
 }
 
 .hero-inner {
@@ -548,22 +573,24 @@ button, input, select, textarea {
   grid-template-columns: minmax(0, 1fr) 300px;
   align-items: center;
   gap: 4rem;
-  padding-block: 4.5rem 3.5rem;
+  /* 上 64 / 下 48：把首屏的重心往上提，让刊头更靠近页头，
+     底部留出的 48 交给下面的版面（原来 72/56 让整块悬在中间） */
+  padding-block: 4rem 3rem;
   position: relative;
   z-index: 2;
 }
 .hero-text { min-width: 0; }
 
 .hero-title {
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   font-size: 30px;
   line-height: 1.16;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .hero-subtitle {
   max-width: 560px;
-  margin: 0 0 24px;
+  margin: 0 0 32px;
   color: var(--text-secondary);
   font-size: 18px;
   line-height: 1.8;
@@ -603,7 +630,7 @@ button, input, select, textarea {
   background: linear-gradient(90deg, var(--sand), var(--sand-deep));
 }
 .hero-figure figcaption {
-  margin-top: 16px;
+  margin-top: 12px;
   padding-left: 12px;
   border-left: 2px solid var(--sand);
   color: var(--text-muted);
@@ -612,7 +639,9 @@ button, input, select, textarea {
   line-height: 1.7;
 }
 
-.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+/* 徽章与按钮之间拉开一档（32px）：徽章是"技术关键词"这种次要信息，
+   按钮是行动入口，两者原来只隔 24px，在首屏里糊成一团 */
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 32px; }
 
 .btn {
   display: inline-flex;
@@ -668,7 +697,7 @@ button, input, select, textarea {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--hairline);
 }
 .section-title {
@@ -676,7 +705,10 @@ button, input, select, textarea {
   align-items: baseline;
   gap: 12px;
   margin: 0;
-  font-size: 20px;
+  /* 区块标题抬到 24px：原来与卡片标题（20px）只差一档，
+     1312 宽的版面里"最新文章"和它下面的卡片标题看起来一样大，
+     层级立不住。现在读作 页面标题 36 > 区块标题 24 > 卡片标题 20 > 正文 16 > 元信息 13。 */
+  font-size: 24px;
   letter-spacing: 0.01em;
 }
 .section-title::before {
@@ -700,17 +732,24 @@ button, input, select, textarea {
 
 .post-list {
   display: grid;
-  gap: 16px;
+  /* 卡片间距对齐项目卡（24px）：原来 16px，卡片内边距却是 24px，
+     间距比内边距还小，一排卡片看上去是"粘"在一起的 */
+  gap: 24px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* 卡片不做圆角、不堆阴影：一条细边框 + 一枚沙色的竖向书脊线 */
+/* 卡片不做圆角、不堆阴影：一条外框 + 一枚沙色的"书脊线"。
+   2026-10 精修：书脊线原来是 left:14px 的 1px 细线，逼得左内边距只能写 32px，
+   卡片左右不对称（32 / 24），文字与线之间还空着 18px。
+   现在把线贴到卡片左沿、加粗到 2px —— 它与站内 .badge / .lede /
+   .sidebar-quote / .hero-figure figcaption 的"沙色竖线"是同一套语言，
+   内边距也随之回到左右对称的 24px。 */
 .post-card {
   position: relative;
-  padding: 24px 24px 24px 32px;
-  border: 1px solid var(--hairline);
+  padding: 24px;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
@@ -718,10 +757,10 @@ button, input, select, textarea {
 .post-card::before {
   content: "";
   position: absolute;
-  left: 14px;
-  top: 24px;
-  bottom: 24px;
-  width: 1px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
   background: var(--sand);
   transition: background-color var(--dur) var(--ease);
 }
@@ -734,7 +773,7 @@ button, input, select, textarea {
 .post-card-title {
   margin: 0 0 12px;
   font-size: 20px;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 .post-card-title a { color: var(--text); }
 .post-card-title a:hover { color: var(--accent); text-decoration: none; }
@@ -798,9 +837,17 @@ button, input, select, textarea {
 .filter-bar {
   margin-bottom: 24px;
   padding: 16px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
+}
+
+/* 搜索框与标签筛选之间压一条发丝线：两件事（找文章 / 按主题过滤）在视觉上分开，
+   否则输入框、状态行、两行标签堆在一个白块里，分不清哪个是主体 */
+.filter-bar .tag-cloud {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
 }
 
 .search-field { position: relative; display: flex; align-items: center; }
@@ -847,7 +894,7 @@ button, input, select, textarea {
 .search-clear svg { width: 15px; height: 15px; }
 
 .filter-status {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
   color: var(--text-muted);
   font-size: 13px;
 }
@@ -998,13 +1045,22 @@ button, input, select, textarea {
 
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag-cloud .tag { padding: 4px 12px; font-size: 14px; }
+/* 标签索引页顶部的整片标签云（原来靠行内 style 写 margin-bottom） */
+.tag-cloud-page { margin-bottom: 24px; }
 
 .tag-section {
   padding-top: 32px;
   margin-top: 32px;
   border-top: 1px solid var(--hairline);
 }
-.tag-section:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+/* 标签云下面那条"共 22 个标签"原来紧贴着第一个分组的标题，
+   看起来像一句没写完的话。首组补回同一条分隔线 + 同样的 32/32 呼吸，
+   与组间节奏一致。 */
+.tag-section:first-of-type {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--hairline);
+}
 .tag-section[hidden] { display: none; }
 
 .tag-section-title {
@@ -1174,12 +1230,17 @@ button, input, select, textarea {
   color: var(--text);
 }
 
+/* 引用块：不再填底色。
+   原来它和 .toc 都是"浅底 + 左边框 + 2px 圆角"的方块，一篇文章里
+   目录与引用前后脚出现时几乎分不出谁是谁。现在只有 .toc 是"浮起的纸"
+   （浅底 + 外框），引用退成"一条沙色竖线 + 无底"，版面上少一层灰块，
+   也让 .lede / .sidebar-quote 的沙色竖线语言第一次真正统一。 */
 .prose blockquote {
-  margin: 1.5rem 0;
+  margin: 24px 0;
   padding: 16px 20px;
-  border-left: 2px solid var(--border-strong);
+  border-left: 2px solid var(--sand);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--bg-subtle);
+  background: none;
   color: var(--text-secondary);
 }
 .prose blockquote p:last-child { margin-bottom: 0; }
@@ -1199,7 +1260,7 @@ button, input, select, textarea {
 .code-block {
   position: relative;
   margin: 24px 0;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-inset);
   overflow: hidden;
@@ -1364,7 +1425,7 @@ button, input, select, textarea {
 .post-nav a {
   display: block;
   padding: 16px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   color: var(--text);
@@ -1458,7 +1519,8 @@ button, input, select, textarea {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
   gap: 8px 16px;
-  padding: 12px 0;
+  /* 16px：归档一页要扫完 6~20 条，条目之间太挤会把标题与摘要压成一片 */
+  padding: 16px 0;
   border-bottom: 1px solid var(--hairline);
   transition: background-color var(--dur) var(--ease);
 }
@@ -1589,7 +1651,7 @@ button, input, select, textarea {
 .is-hidden { display: none !important; }
 
 /* 项目页的分组说明：原来靠行内 style 写负边距（会破坏 4px 网格），现在收进类里 */
-.section-desc { margin: 0 0 20px; color: var(--text-secondary); font-size: 16px; }
+.section-desc { margin: 0 0 24px; color: var(--text-secondary); font-size: 16px; }
 
 @media (max-width: 1120px) {
   .layout { grid-template-columns: minmax(0, 1fr) 248px; gap: 3rem; }
@@ -1602,8 +1664,9 @@ button, input, select, textarea {
 @media (max-width: 480px) {
   .container { padding-inline: 16px; }
   .article-wrap { padding: 32px 16px 48px; }
-  .post-card { padding: 20px 16px 20px 28px; }
-  .post-card::before { left: 12px; top: 20px; bottom: 20px; }
+  /* 窄屏卡片内边距收到 16px；书脊线仍然贴左沿（第 06 节），
+     不能在窄屏又退回"线内缩 12px + 左内边距 28px"那套不对称的老写法 */
+  .post-card { padding: 16px; }
   .prose { font-size: 1rem; }
 }
 
@@ -1683,7 +1746,9 @@ button, input, select, textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 24px 0 0;
+  /* 与上一段（副标题）的间隔由 .hero-subtitle 的 margin-bottom 给出，
+     与下一行按钮的间隔由 .hero-actions 的 margin-top 给出 —— 不再两头各写一半 */
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -1720,14 +1785,21 @@ button, input, select, textarea {
 @media (min-width: 720px) {
   .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* 卡片按内容高度排布，不再被 grid 拉成同一行里最高的那张。
+   原来 align-items 默认 stretch + 卡片 height:100%，于是一行里两张卡
+   内容差一倍时，短的那张下半截是一大块空白（实测 EPF-Unlocker 那行
+   右卡底部空出约 170px），看上去像"洞"。现在空白回到卡片之间，
+   卡片边框勾出的始终是实实在在的内容。 */
+.project-grid { align-items: start; }
+.project-grid > .card-3d { height: auto; }
 .project-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   padding: 24px;
   overflow: hidden;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elevated);
   transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
@@ -1761,7 +1833,9 @@ button, input, select, textarea {
      括注里才出现中文。用 --font-latin-serif：拉丁走 Inter，中文仍是宋体，
      不再让 SimSun 的拉丁字形去渲染仓库名。 */
   font-family: var(--font-latin-serif);
-  font-size: 16px;
+  /* 18px：项目名要与卡片正文（14px）拉开一档，
+     否则整张卡片"什么都差不多大" */
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -2160,7 +2234,7 @@ button, input, select, textarea {
 
 .diagram {
   margin: 24px 0;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elevated);
   overflow: hidden;
