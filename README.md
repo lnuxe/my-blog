@@ -28,7 +28,7 @@ blog/
 ├── feed.xml              # RSS 2.0 订阅源（6 篇文章）
 ├── sitemap.xml           # XML 站点地图（含 projects.html）
 ├── robots.txt            # 爬虫规则
-├── favicon.svg           # 站点图标（内联渐变 + 上行箭头）
+├── favicon.svg           # 站点图标（石板蓝底 + 纸白兜帽 + 沙色格纹围巾）；页头 / 页脚的标志也引用它本身
 ├── README.md             # 本文件
 ├── tools/
 │   └── check_blog.py     # 开发工具：检查死链、锚点、导航与 XML（不参与站点运行）
@@ -258,7 +258,7 @@ server {
 | `projects.html` | 全部项目卡片（名称、语言标签、简介、要点、GitHub 链接） |
 | `about.html` | 全部内容 |
 | `assets/style.css` 的 `:root` | 主色 `--accent`、字号、圆角、内容宽度 `--content-width` |
-| `favicon.svg` | 站点图标 |
+| `favicon.svg` | 站点图标；页头 / 页脚的 `<img class="brand-mark">` 引用的是同一个文件，改一处全站生效 |
 
 改主题色只需要动 `:root` 和 `[data-theme="dark"]` 里的 `--accent`、`--accent-hover`、`--accent-soft` 三个变量。
 

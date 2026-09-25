@@ -50,16 +50,16 @@
   23–27 这五个是在同一个 24×24 线性规范下补的：放大镜沿用本文件里
   tabler-search 的圆心与半径（cx=10 / cy=10 / r=7），只多了 +/− 两笔，
   所以工具条上"放大"和搜索框的放大镜看起来是同一套东西。
+
+  站点标志（页头 / 页脚那个兜帽剪影）**故意不放进这个 sprite**：
+  它就是根目录的 favicon.svg 本身，页面用
+      <img class="brand-mark" src="favicon.svg" width="32" height="32" alt="…">
+  引用。原因是 file:// 下 Chrome / Firefox 会拒绝跨文档的 SVG <use> 外部引用 ——
+  放进 sprite 会让"双击 HTML 离线阅读"时页头只剩文字（本文件里那 27 个图标
+  本来就受这条限制）。用 <img> 引用同目录的 svg 不受影响，
+  而且页头标志与浏览器标签页上的图标从此是同一个文件，不可能再对不上。
 -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
-  <defs>
-    <!-- 站点标志：石板蓝 → 沙色，取自头像的天空与围巾 -->
-    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#506478"/>
-      <stop offset="1" stop-color="#8c7a63"/>
-    </linearGradient>
-  </defs>
-
   <symbol id="tabler-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
     <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
